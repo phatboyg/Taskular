@@ -16,6 +16,12 @@ namespace Taskular
 
     public static class ComposerExtensions
     {
+        public static Composer<T> Execute<T>(this Composer<T> composer, Action continuation,
+            ExecuteOptions options = ExecuteOptions.None)
+        {
+            return composer.Execute(payload => continuation(), options);
+        }
+
         /// <summary>
         ///     Adds a continuation that is always run, regardless of a successful or exceptional condition
         /// </summary>
@@ -71,6 +77,33 @@ namespace Taskular
             return composer;
         }
 
+        /// <summary>
+        ///     Creates a new Composer, which can be used to compose a task chain, which can be added to an
+        ///     existing composer as a single task. Note that this executes on the task chain, and not immediately.
+        /// </summary>
+        /// <typeparam name="T">The payload type</typeparam>
+        /// <typeparam name="TPayload">The child payload type</typeparam>
+        /// <param name="composer">The existing composer</param>
+        /// <param name="payload">The child payload</param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        public static Composer<T> ComposeTask<T, TPayload>(this Composer<T> composer, TPayload payload,
+            Action<Composer<TPayload>> callback)
+        {
+            composer.ExecuteTask(async (p, cancellationToken) =>
+            {
+                Composer<TPayload> taskComposer = new TaskComposer<TPayload>(payload, composer.CancellationToken);
+
+                callback(taskComposer);
+
+                await taskComposer.Task;
+
+                return composer.Payload;
+            });
+
+            return composer;
+        }
+
 
         /// <summary>
         ///     Creates a new Composer, which can be used to compose a task chain, which can be added to an
@@ -82,14 +115,15 @@ namespace Taskular
         /// <returns></returns>
         public static Composer<T> ComposeTask<T>(this Composer<T> composer, Action<Composer> callback)
         {
-            composer.ExecuteTask((payload, cancellationToken) =>
+            composer.ExecuteTask(async (payload, cancellationToken) =>
             {
                 Composer taskComposer = new TaskComposer(composer.CancellationToken);
 
                 callback(taskComposer);
 
-                return taskComposer.Task.ContinueWith(_ => composer.Payload,
-                    TaskContinuationOptions.ExecuteSynchronously);
+                await taskComposer.Task;
+
+                return composer.Payload;
             });
 
             return composer;
@@ -99,7 +133,6 @@ namespace Taskular
         ///     Creates a new Composer, which can be used to compose a task chain, which can be added to an
         ///     existing composer as a single task. Note that this executes on the task chain, and not immediately.
         /// </summary>
-        /// <typeparam name="T">The payload type</typeparam>
         /// <param name="composer">The existing composer</param>
         /// <param name="callback"></param>
         /// <returns></returns>
