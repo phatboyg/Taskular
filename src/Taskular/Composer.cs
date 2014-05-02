@@ -25,8 +25,50 @@ namespace Taskular
     {
         CancellationToken CancellationToken { get; }
 
+        /// <summary>
+        ///     The last Task in the chain. This task changes with every task that is added to the chain
+        /// </summary>
+        Task Task { get; }
 
-        Composer Execute(Action action, bool runSynchronously = true);
+        /// <summary>
+        ///     Execute an taskFactory with the specified payload.
+        /// </summary>
+        /// <param name="action">The taskFactory to execute</param>
+        /// <param name="options">The task execution options</param>
+        /// <returns></returns>
+        Composer Execute(Action action, ExecuteOptions options = ExecuteOptions.None);
+
+        /// <summary>
+        ///     Execute an taskFactory with the specified payload.
+        /// </summary>
+        /// <param name="taskFactory">The taskFactory to execute</param>
+        /// <param name="options">The task execution options</param>
+        /// <returns></returns>
+        Composer ExecuteTask(Func<CancellationToken, Task> taskFactory, ExecuteOptions options = ExecuteOptions.None);
+
+        /// <summary>
+        ///     If a previous task faulted, run a compensating taskFactory to handle the fault.
+        /// </summary>
+        /// <param name="compensation">The compensation context</param>
+        /// <returns>A compensation result indicating the disposition of the fault</returns>
+        Composer Compensate(Func<Compensation, CompensationResult> compensation);
+
+        /// <summary>
+        ///     Adds a action that is always run, regardless of a successful or exceptional condition
+        /// </summary>
+        /// <param name="continuation">The continuation method</param>
+        /// <param name="options">The task execution options</param>
+        /// <returns></returns>
+        Composer Finally(Action<TaskStatus> continuation, ExecuteOptions options = ExecuteOptions.None);
+
+        /// <summary>
+        ///     Add a task that faults the composition
+        /// </summary>
+        /// <typeparam name="TException"></typeparam>
+        /// <param name="exception"></param>
+        /// <returns></returns>
+        Composer Fault<TException>(TException exception)
+            where TException : Exception;
     }
 
 
@@ -68,7 +110,8 @@ namespace Taskular
         /// <param name="taskFactory">The taskFactory to execute</param>
         /// <param name="options">The task execution options</param>
         /// <returns></returns>
-        Composer<T> ExecuteTask(Func<T, CancellationToken, Task<T>> taskFactory, ExecuteOptions options = ExecuteOptions.None);
+        Composer<T> ExecuteTask(Func<T, CancellationToken, Task<T>> taskFactory,
+            ExecuteOptions options = ExecuteOptions.None);
 
         /// <summary>
         ///     If a previous task faulted, run a compensating taskFactory to handle the fault.

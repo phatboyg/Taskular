@@ -22,6 +22,17 @@ namespace Taskular
         /// <param name="composer"></param>
         /// <param name="continuation"></param>
         /// <param name="options"></param>
+        public static Composer Finally(this Composer composer, Action continuation, ExecuteOptions options)
+        {
+            return composer.Finally(status => continuation(), options);
+        }
+
+        /// <summary>
+        ///     Adds a continuation that is always run, regardless of a successful or exceptional condition
+        /// </summary>
+        /// <param name="composer"></param>
+        /// <param name="continuation"></param>
+        /// <param name="options"></param>
         public static Composer<T> Finally<T>(this Composer<T> composer, Action<T> continuation, ExecuteOptions options)
         {
             return composer.Finally((payload, status) => continuation(payload), options);
@@ -49,13 +60,59 @@ namespace Taskular
         public static Composer<T> ComposeTask<T>(this Composer<T> composer, Action<Composer<T>> callback)
         {
             composer.ExecuteTask((payload, cancellationToken) =>
-                {
-                    Composer<T> taskComposer = new TaskComposer<T>(composer.Payload, composer.CancellationToken);
+            {
+                Composer<T> taskComposer = new TaskComposer<T>(composer.Payload, composer.CancellationToken);
 
-                    callback(taskComposer);
+                callback(taskComposer);
 
-                    return taskComposer.Task;
-                });
+                return taskComposer.Task;
+            });
+
+            return composer;
+        }
+
+
+        /// <summary>
+        ///     Creates a new Composer, which can be used to compose a task chain, which can be added to an
+        ///     existing composer as a single task. Note that this executes on the task chain, and not immediately.
+        /// </summary>
+        /// <typeparam name="T">The payload type</typeparam>
+        /// <param name="composer">The existing composer</param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        public static Composer<T> ComposeTask<T>(this Composer<T> composer, Action<Composer> callback)
+        {
+            composer.ExecuteTask((payload, cancellationToken) =>
+            {
+                Composer taskComposer = new TaskComposer(composer.CancellationToken);
+
+                callback(taskComposer);
+
+                return taskComposer.Task.ContinueWith(_ => composer.Payload,
+                    TaskContinuationOptions.ExecuteSynchronously);
+            });
+
+            return composer;
+        }
+
+        /// <summary>
+        ///     Creates a new Composer, which can be used to compose a task chain, which can be added to an
+        ///     existing composer as a single task. Note that this executes on the task chain, and not immediately.
+        /// </summary>
+        /// <typeparam name="T">The payload type</typeparam>
+        /// <param name="composer">The existing composer</param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        public static Composer ComposeTask(this Composer composer, Action<Composer> callback)
+        {
+            composer.ExecuteTask(cancellationToken =>
+            {
+                Composer taskComposer = new TaskComposer(composer.CancellationToken);
+
+                callback(taskComposer);
+
+                return taskComposer.Task;
+            });
 
             return composer;
         }

@@ -45,5 +45,31 @@ namespace Taskular
 
             return composer;
         }
+
+        public static Composer Delay(this Composer composer, int millisecondsDelay)
+        {
+            if (millisecondsDelay < -1)
+            {
+                throw new ArgumentOutOfRangeException("millisecondsDelay",
+                    "The delay must be non-negative or -1, and it must be less than or equal to Int32.MaxValue.");
+            }
+
+            composer.ExecuteTask(cancellationToken => Task.Delay(millisecondsDelay, cancellationToken));
+
+            return composer;
+        }
+
+        public static Composer Delay(this Composer composer, TimeSpan delay)
+        {
+            if (delay < TimeSpan.Zero)
+            {
+                throw new ArgumentOutOfRangeException("delay",
+                    "The delay must be non-negative or -1, and it must be less than or equal to Int32.MaxValue.");
+            }
+
+            composer.ExecuteTask(cancellationToken => Task.Delay(delay, cancellationToken));
+
+            return composer;
+        }
     }
 }

@@ -39,7 +39,11 @@
   <ItemGroup>
     <Compile Include="CancelT_Specs.cs" />
     <Compile Include="CompensateT_Specs.cs" />
+    <Compile Include="Compensate_Specs.cs" />
+    <Compile Include="Delay_Specs.cs" />
     <Compile Include="ExecuteT_Specs.cs" />
+    <Compile Include="Execute_Specs.cs" />
+    <Compile Include="Finally_Specs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

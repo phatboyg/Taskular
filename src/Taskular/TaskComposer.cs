@@ -15,6 +15,92 @@ namespace Taskular
     using System.Threading.Tasks;
 
 
+    public class TaskComposer :
+        Composer
+    {
+        readonly CancellationToken _cancellationToken;
+        readonly Composer<Unit> _composer;
+
+        public TaskComposer(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            _cancellationToken = cancellationToken;
+
+            _composer = new TaskComposer<Unit>(default(Unit), cancellationToken);
+        }
+
+
+        CancellationToken Composer.CancellationToken
+        {
+            get { return _cancellationToken; }
+        }
+
+        Task Composer.Task
+        {
+            get { return _composer.Task; }
+        }
+
+        Composer Composer.Execute(Action action, ExecuteOptions options)
+        {
+            _composer.Execute(x => action(), options);
+            return this;
+        }
+
+        Composer Composer.ExecuteTask(Func<CancellationToken, Task> taskFactory, ExecuteOptions options)
+        {
+            _composer.ExecuteTask((x, token) => taskFactory(token)
+                .ContinueWith(innerTask => _composer.Payload, _cancellationToken), options);
+            return this;
+        }
+
+        Composer Composer.Compensate(Func<Compensation, CompensationResult> compensation)
+        {
+            _composer.Compensate(x =>
+            {
+                var taskCompensation = new CompensationProxy<Unit>(x);
+
+                CompensationResult compensationResult = compensation(taskCompensation);
+
+                var result = compensationResult as CompensationResult<Unit>;
+                if (result != null)
+                    return result;
+
+                if (compensationResult.Task.IsCompleted)
+                {
+                    if (compensationResult.Task.IsFaulted)
+                        return x.Task(TaskUtil.Faulted<Unit>(compensationResult.Task.Exception.InnerExceptions));
+
+                    if (compensationResult.Task.IsCanceled || _cancellationToken.IsCancellationRequested)
+                        return x.Task(TaskUtil.Canceled<Unit>());
+
+                    if (compensationResult.Task.Status == TaskStatus.RanToCompletion)
+                        return x.Task(TaskUtil.Completed(default(Unit)));
+                }
+
+                return x.Task(compensationResult.Task.ContinueWith(_ => x.Payload,
+                    TaskContinuationOptions.ExecuteSynchronously));
+            });
+            return this;
+        }
+
+        Composer Composer.Finally(Action<TaskStatus> continuation, ExecuteOptions options)
+        {
+            _composer.Finally((x, status) => continuation(status), options);
+            return this;
+        }
+
+        Composer Composer.Fault<TException>(TException exception)
+        {
+            _composer.Fault(exception);
+            return this;
+        }
+
+
+        struct Unit
+        {
+        }
+    }
+
+
     public class TaskComposer<T> :
         Composer<T>
     {
@@ -68,7 +154,7 @@ namespace Taskular
             return this;
         }
 
-        public Composer<T> Finally(Action<T, TaskStatus> continuation, ExecuteOptions options)
+        Composer<T> Composer<T>.Finally(Action<T, TaskStatus> continuation, ExecuteOptions options)
         {
             if (_task.IsCompleted && options.HasFlag(ExecuteOptions.RunSynchronously))
             {
@@ -80,8 +166,7 @@ namespace Taskular
             return this;
         }
 
-        public Composer<T> Fault<TException>(TException exception)
-            where TException : Exception
+        Composer<T> Composer<T>.Fault<TException>(TException exception)
         {
             _task = Execute(_task, payload => TaskUtil.Faulted<T>(exception), ExecuteOptions.None);
             return this;
@@ -118,25 +203,25 @@ namespace Taskular
         {
             var source = new TaskCompletionSource<Task<T>>();
             task.ContinueWith((Task<T> innerTask) =>
+            {
+                if (innerTask.IsFaulted)
+                    source.TrySetException(innerTask.Exception.InnerExceptions);
+                else if (innerTask.IsCanceled || _cancellationToken.IsCancellationRequested)
+                    source.TrySetCanceled();
+                else
                 {
-                    if (innerTask.IsFaulted)
-                        source.TrySetException(innerTask.Exception.InnerExceptions);
-                    else if (innerTask.IsCanceled || _cancellationToken.IsCancellationRequested)
-                        source.TrySetCanceled();
-                    else
+                    try
                     {
-                        try
-                        {
-                            source.TrySetResult(continuationTask(innerTask.Result));
-                        }
-                        catch (Exception ex)
-                        {
-                            source.TrySetException(ex);
-                        }
+                        source.TrySetResult(continuationTask(innerTask.Result));
                     }
-                }, options.HasFlag(ExecuteOptions.RunSynchronously)
-                    ? TaskContinuationOptions.ExecuteSynchronously
-                    : TaskContinuationOptions.None);
+                    catch (Exception ex)
+                    {
+                        source.TrySetException(ex);
+                    }
+                }
+            }, options.HasFlag(ExecuteOptions.RunSynchronously)
+                ? TaskContinuationOptions.ExecuteSynchronously
+                : TaskContinuationOptions.None);
 
             return source.Task.FastUnwrap();
         }
@@ -180,29 +265,29 @@ namespace Taskular
             var source = new TaskCompletionSource<Task<T>>();
 
             task.ContinueWith((Task<T> innerTask) =>
-                {
-                    if (innerTask.IsCanceled)
-                        return source.TrySetCanceled();
+            {
+                if (innerTask.IsCanceled)
+                    return source.TrySetCanceled();
 
-                    return source.TrySetResult(TaskUtil.Completed(innerTask.Result));
-                },
+                return source.TrySetResult(TaskUtil.Completed(innerTask.Result));
+            },
                 TaskContinuationOptions.NotOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
 
             task.ContinueWith((Task<T> innerTask) =>
+            {
+                try
                 {
-                    try
-                    {
-                        Task<T> resultTask = compensationTask(innerTask);
-                        if (resultTask == null)
-                            throw new InvalidOperationException("Sure could use a Task here buddy");
+                    Task<T> resultTask = compensationTask(innerTask);
+                    if (resultTask == null)
+                        throw new InvalidOperationException("Sure could use a Task here buddy");
 
-                        source.TrySetResult(resultTask);
-                    }
-                    catch (Exception ex)
-                    {
-                        source.TrySetException(ex);
-                    }
-                }, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
+                    source.TrySetResult(resultTask);
+                }
+                catch (Exception ex)
+                {
+                    source.TrySetException(ex);
+                }
+            }, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
 
             return source.Task.FastUnwrap();
         }
@@ -211,19 +296,19 @@ namespace Taskular
         {
             var source = new TaskCompletionSource<T>();
             task.ContinueWith((Task<T> innerTask) =>
+            {
+                try
                 {
-                    try
-                    {
-                        continuation(_payload, innerTask.Status);
-                        source.TrySetFromTask(innerTask);
-                    }
-                    catch (Exception ex)
-                    {
-                        source.TrySetException(ex);
-                    }
-                }, options.HasFlag(ExecuteOptions.RunSynchronously)
-                    ? TaskContinuationOptions.ExecuteSynchronously
-                    : TaskContinuationOptions.None);
+                    continuation(_payload, innerTask.Status);
+                    source.TrySetFromTask(innerTask);
+                }
+                catch (Exception ex)
+                {
+                    source.TrySetException(ex);
+                }
+            }, options.HasFlag(ExecuteOptions.RunSynchronously)
+                ? TaskContinuationOptions.ExecuteSynchronously
+                : TaskContinuationOptions.None);
 
             return source.Task;
         }

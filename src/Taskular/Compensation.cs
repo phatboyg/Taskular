@@ -14,6 +14,42 @@ namespace Taskular
     using System.Threading.Tasks;
 
 
+    public interface Compensation
+    {
+        /// <summary>
+        ///     The exception that triggered the compensation
+        /// </summary>
+        Exception Exception { get; }
+
+        /// <summary>
+        ///     Mark the exception as handled, preventing further compensation
+        /// </summary>
+        /// <returns></returns>
+        CompensationResult Handled();
+
+        /// <summary>
+        ///     Return a Task in response to the exception
+        /// </summary>
+        /// <param name="task"></param>
+        /// <returns></returns>
+        CompensationResult Task(Task task);
+
+        /// <summary>
+        ///     Throw the specified exception instead of the exception that caused the compensation
+        /// </summary>
+        /// <param name="exception">The exception to throw instead of the initial exception</param>
+        /// <returns></returns>
+        CompensationResult Throw<TException>(TException exception)
+            where TException : Exception;
+
+        /// <summary>
+        ///     Throw the exception that caused the compensation, continuing the compensation flow
+        /// </summary>
+        /// <returns></returns>
+        CompensationResult Throw();
+    }
+
+
     public interface Compensation<T>
     {
         /// <summary>

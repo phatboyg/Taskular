@@ -67,7 +67,8 @@ namespace Taskular
 
 
         class Result :
-            CompensationResult<T>
+            CompensationResult<T>,
+            CompensationResult
         {
             readonly Task<T> _task;
 
@@ -76,7 +77,12 @@ namespace Taskular
                 _task = task;
             }
 
-            public Task<T> Task
+            Task CompensationResult.Task
+            {
+                get { return _task; }
+            }
+
+            Task<T> CompensationResult<T>.Task
             {
                 get { return _task; }
             }
