@@ -21,11 +21,11 @@ namespace Taskular
         /// Create an immediate retry policy with the specified number of retries, with no
         /// delay between attempts.
         /// </summary>
-        /// <param name="retryCount">The number of retries to attempt</param>
+        /// <param name="retryLimit">The number of retries to attempt</param>
         /// <returns></returns>
-        public static IRetryPolicy Immediate(int retryCount)
+        public static IRetryPolicy Immediate(int retryLimit)
         {
-            return new ImmediateRetryPolicy(retryCount);
+            return new ImmediateRetryPolicy(retryLimit);
         }
 
         /// <summary>
@@ -59,6 +59,20 @@ namespace Taskular
         public static IRetryPolicy Interval(int retryCount, TimeSpan interval)
         {
             return new IntervalRetryPolicy(Enumerable.Repeat(interval, retryCount).ToArray());
+        }
+
+        /// <summary>
+        /// Create an exponential retry policy with the specified number of retries at exponential
+        /// intervals
+        /// </summary>
+        /// <param name="retryLimit"></param>
+        /// <param name="minInterval"></param>
+        /// <param name="maxInterval"></param>
+        /// <param name="intervalDelta"></param>
+        /// <returns></returns>
+        public static IRetryPolicy Exponential(int retryLimit, TimeSpan minInterval, TimeSpan maxInterval, TimeSpan intervalDelta)
+        {
+            return new ExponentialIntervalRetryPolicy(retryLimit, minInterval, maxInterval, intervalDelta);
         }
     }
 }

@@ -19,9 +19,9 @@ namespace Taskular.Policies
     {
         readonly TimeSpan[] _intervals;
 
-        public ImmediateRetryPolicy(int retryCount)
+        public ImmediateRetryPolicy(int retryLimit)
         {
-            _intervals = Enumerable.Repeat(TimeSpan.Zero, retryCount).ToArray();
+            _intervals = Enumerable.Repeat(TimeSpan.Zero, retryLimit).ToArray();
         }
 
         public IRetryContext GetRetryContext()

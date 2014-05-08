@@ -11,35 +11,49 @@
 namespace Taskular.Policies
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
 
 
     public class ExponentialIntervalRetryPolicy :
         IRetryPolicy
     {
-        readonly TimeSpan[] _intervals;
+        readonly int _highInterval;
+        readonly int _lowInterval;
+        readonly int _maxInterval;
+        readonly int _minInterval;
+        readonly int _retryLimit;
 
-        public ExponentialIntervalRetryPolicy(int retryLimit, TimeSpan minDelay, TimeSpan maxDelay, TimeSpan delayDelta)
+        public ExponentialIntervalRetryPolicy(int retryLimit, TimeSpan minInterval, TimeSpan maxInterval, TimeSpan intervalDelta)
         {
-            var rand = new Random();
+            _retryLimit = retryLimit;
+            _minInterval = (int)minInterval.TotalMilliseconds;
+            _maxInterval = (int)maxInterval.TotalMilliseconds;
 
-            _intervals = Enumerable.Repeat(minDelay.TotalMilliseconds, retryLimit)
-                .Select((min, index) => min + (int)((Math.Pow(2, index)
-                                                     * rand.Next((int)(delayDelta.TotalMilliseconds * 0.8),
-                                                         (int)(delayDelta.TotalMilliseconds * 1.2)))))
-                .Select(x => Math.Min((int)maxDelay.TotalMilliseconds, x))
-                .Select(TimeSpan.FromMilliseconds)
-                .ToArray();
+            _lowInterval = (int)(intervalDelta.TotalMilliseconds * 0.8);
+            _highInterval = (int)(intervalDelta.TotalMilliseconds * 1.2);
         }
 
         public IRetryContext GetRetryContext()
         {
-            return new IntervalRetryContext(this, _intervals);
+            return new IntervalRetryContext(this, GetIntervals().ToArray());
         }
 
         public bool CanRetry(Exception exception)
         {
             return true;
+        }
+
+        IEnumerable<TimeSpan> GetIntervals()
+        {
+            var random = new Random();
+
+            for (int i = 0; i < _retryLimit; i++)
+            {
+                var delta = (int)Math.Min(_minInterval + Math.Pow(2, i) * random.Next(_lowInterval, _highInterval), _maxInterval);
+
+                yield return TimeSpan.FromMilliseconds(delta);
+            }
         }
     }
 }
