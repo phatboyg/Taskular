@@ -18,9 +18,10 @@ namespace Taskular.Policies
     public class IncrementalRetryPolicy :
         IRetryPolicy
     {
+        readonly IRetryExceptionFilter _filter;
         readonly TimeSpan[] _intervals;
 
-        public IncrementalRetryPolicy(int retryLimit, TimeSpan initialInterval, TimeSpan intervalIncrement)
+        public IncrementalRetryPolicy(IRetryExceptionFilter filter, int retryLimit, TimeSpan initialInterval, TimeSpan intervalIncrement)
         {
             if (initialInterval < TimeSpan.Zero)
             {
@@ -34,6 +35,7 @@ namespace Taskular.Policies
                     "The intervalIncrement must be non-negative or -1, and it must be less than or equal to TimeSpan.MaxValue.");
             }
 
+            _filter = filter;
             _intervals = GetIntervals(retryLimit, initialInterval, intervalIncrement).ToArray();
         }
 
@@ -44,7 +46,7 @@ namespace Taskular.Policies
 
         public bool CanRetry(Exception exception)
         {
-            return true;
+            return _filter.CanRetry(exception);
         }
 
         IEnumerable<TimeSpan> GetIntervals(int retryLimit, TimeSpan initialInterval, TimeSpan intervalIncrement)

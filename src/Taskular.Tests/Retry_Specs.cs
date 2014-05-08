@@ -14,6 +14,7 @@ namespace Taskular.Tests
     using System.Diagnostics;
     using System.Threading;
     using NUnit.Framework;
+    using Policies;
 
 
     [TestFixture]
@@ -24,7 +25,7 @@ namespace Taskular.Tests
         {
             var tracker = new Tracker(3);
 
-            IRetryPolicy retryPolicy = RetryPolicy.Intervals(10, 50, 500, 1000);
+            IRetryPolicy retryPolicy = Retry.Intervals(10, 50, 500, 1000);
 
             var task = ComposerFactory.Compose(composer => composer.Retry(retryPolicy, x => x.Execute(tracker.FaultingMethod)));
 
@@ -44,13 +45,55 @@ namespace Taskular.Tests
         {
             var tracker = new Tracker(3);
 
-            IRetryPolicy retryPolicy = RetryPolicy.Immediate(5);
+            IRetryPolicy retryPolicy = Retry.Immediate(5);
 
             var task = ComposerFactory.Compose(composer => composer.Retry(retryPolicy, x => x.Execute(tracker.FaultingMethod)));
 
             task.Wait();
 
             Assert.AreEqual(4, tracker.CallCount);
+        }
+
+        [Test]
+        public void Should_call_the_method_only_once()
+        {
+            var tracker = new Tracker(3);
+
+            IRetryPolicy retryPolicy = Retry.Filter<InvalidOperationException>(x => false).Immediate(5);
+
+            var task = ComposerFactory.Compose(composer => composer.Retry(retryPolicy, x => x.Execute(tracker.FaultingMethod)));
+
+            Assert.Throws<InvalidOperationException>(async () => await task);
+
+            Assert.AreEqual(1, tracker.CallCount);
+        }
+
+        [Test]
+        public async void Should_include_the_handled_exception()
+        {
+            var tracker = new Tracker(3);
+
+            IRetryPolicy retryPolicy = Retry.Selected<InvalidOperationException>().Immediate(5);
+
+            var task = ComposerFactory.Compose(composer => composer.Retry(retryPolicy, x => x.Execute(tracker.FaultingMethod)));
+
+            await task;
+
+            Assert.AreEqual(4, tracker.CallCount);
+        }
+
+        [Test]
+        public void Should_not_include_the_excluded()
+        {
+            var tracker = new Tracker(3);
+
+            IRetryPolicy retryPolicy = Retry.Except<InvalidOperationException>().Immediate(5);
+
+            var task = ComposerFactory.Compose(composer => composer.Retry(retryPolicy, x => x.Execute(tracker.FaultingMethod)));
+
+            Assert.Throws<InvalidOperationException>(async () => await task);
+
+            Assert.AreEqual(1, tracker.CallCount);
         }
 
 

@@ -1,4 +1,4 @@
-﻿// Copyright 2007-2014 Chris Patterson
+// Copyright 2007-2014 Chris Patterson
 // 
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at 
@@ -11,29 +11,27 @@
 namespace Taskular.Policies
 {
     using System;
-    using System.Linq;
 
 
-    public class ImmediateRetryPolicy :
-        IRetryPolicy
+    public class RetryExceptRetryExceptionFilter :
+        IRetryExceptionFilter
     {
-        readonly IRetryExceptionFilter _filter;
-        readonly TimeSpan[] _intervals;
+        readonly Type[] _exceptionTypes;
 
-        public ImmediateRetryPolicy(IRetryExceptionFilter filter, int retryLimit)
+        public RetryExceptRetryExceptionFilter(params Type[] exceptionTypes)
         {
-            _filter = filter;
-            _intervals = Enumerable.Repeat(TimeSpan.Zero, retryLimit).ToArray();
-        }
-
-        public IRetryContext GetRetryContext()
-        {
-            return new IntervalRetryContext(this, _intervals);
+            _exceptionTypes = exceptionTypes;
         }
 
         public bool CanRetry(Exception exception)
         {
-            return _filter.CanRetry(exception);
+            for (int i = 0; i < _exceptionTypes.Length; i++)
+            {
+                if (_exceptionTypes[i].IsInstanceOfType(exception))
+                    return false;
+            }
+
+            return true;
         }
     }
 }

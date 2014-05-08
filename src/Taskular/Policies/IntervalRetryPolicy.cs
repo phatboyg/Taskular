@@ -17,25 +17,28 @@ namespace Taskular.Policies
     public class IntervalRetryPolicy :
         IRetryPolicy
     {
+        readonly IRetryExceptionFilter _filter;
         readonly TimeSpan[] _intervals;
 
-        public IntervalRetryPolicy(params TimeSpan[] intervals)
+        public IntervalRetryPolicy(IRetryExceptionFilter filter, params TimeSpan[] intervals)
         {
             if (intervals == null)
                 throw new ArgumentNullException("intervals");
             if (intervals.Length == 0)
                 throw new ArgumentOutOfRangeException("intervals", "At least one interval must be specified");
 
+            _filter = filter;
             _intervals = intervals;
         }
 
-        public IntervalRetryPolicy(params int[] intervals)
+        public IntervalRetryPolicy(IRetryExceptionFilter filter, params int[] intervals)
         {
             if (intervals == null)
                 throw new ArgumentNullException("intervals");
             if (intervals.Length == 0)
                 throw new ArgumentOutOfRangeException("intervals", "At least one interval must be specified");
 
+            _filter = filter;
             _intervals = intervals.Select(x => TimeSpan.FromMilliseconds(x)).ToArray();
         }
 
@@ -46,7 +49,7 @@ namespace Taskular.Policies
 
         public bool CanRetry(Exception exception)
         {
-            return true;
+            return _filter.CanRetry(exception);
         }
     }
 }

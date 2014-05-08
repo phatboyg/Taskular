@@ -11,29 +11,18 @@
 namespace Taskular.Policies
 {
     using System;
-    using System.Linq;
 
 
-    public class ImmediateRetryPolicy :
-        IRetryPolicy
+    /// <summary>
+    /// Filters exceptions for retry
+    /// </summary>
+    public interface IRetryExceptionFilter
     {
-        readonly IRetryExceptionFilter _filter;
-        readonly TimeSpan[] _intervals;
-
-        public ImmediateRetryPolicy(IRetryExceptionFilter filter, int retryLimit)
-        {
-            _filter = filter;
-            _intervals = Enumerable.Repeat(TimeSpan.Zero, retryLimit).ToArray();
-        }
-
-        public IRetryContext GetRetryContext()
-        {
-            return new IntervalRetryContext(this, _intervals);
-        }
-
-        public bool CanRetry(Exception exception)
-        {
-            return _filter.CanRetry(exception);
-        }
+        /// <summary>
+        /// Returns true if the exception can be retried
+        /// </summary>
+        /// <param name="exception"></param>
+        /// <returns></returns>
+        bool CanRetry(Exception exception);
     }
 }

@@ -18,14 +18,17 @@ namespace Taskular.Policies
     public class ExponentialIntervalRetryPolicy :
         IRetryPolicy
     {
+        readonly IRetryExceptionFilter _filter;
         readonly int _highInterval;
         readonly int _lowInterval;
         readonly int _maxInterval;
         readonly int _minInterval;
         readonly int _retryLimit;
 
-        public ExponentialIntervalRetryPolicy(int retryLimit, TimeSpan minInterval, TimeSpan maxInterval, TimeSpan intervalDelta)
+        public ExponentialIntervalRetryPolicy(IRetryExceptionFilter filter, int retryLimit, TimeSpan minInterval, TimeSpan maxInterval,
+            TimeSpan intervalDelta)
         {
+            _filter = filter;
             _retryLimit = retryLimit;
             _minInterval = (int)minInterval.TotalMilliseconds;
             _maxInterval = (int)maxInterval.TotalMilliseconds;
@@ -41,7 +44,7 @@ namespace Taskular.Policies
 
         public bool CanRetry(Exception exception)
         {
-            return true;
+            return _filter.CanRetry(exception);
         }
 
         IEnumerable<TimeSpan> GetIntervals()
