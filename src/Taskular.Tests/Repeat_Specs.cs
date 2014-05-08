@@ -74,4 +74,83 @@ namespace Taskular.Tests
             }
         }
     }
+
+    [TestFixture]
+    public class Repeating_a_faulting_task
+    {
+        [Test]
+        public void Should_repeat_until_canceled()
+        {
+            var tracker = new Tracker(3);
+
+            Stopwatch timer = Stopwatch.StartNew();
+
+            Task task = ComposerFactory.Compose(x => x.Repeat(3, composer =>
+            {
+                composer.Execute(tracker.RepeatedMethod);
+                composer.Compensate(comp => comp.Handled());
+            }, tracker.Token));
+
+            task.Wait();
+
+            timer.Stop();
+
+            Assert.AreEqual(3, tracker.CallCount);
+        }
+
+        [Test]
+        public void Should_fault_if_not_compensated()
+        {
+            var tracker = new Tracker(3);
+
+            Stopwatch timer = Stopwatch.StartNew();
+
+            Task task = ComposerFactory.Compose(x => x.Repeat(3, composer =>
+            {
+                composer.Execute(tracker.RepeatedMethod);
+            }, tracker.Token));
+
+            Assert.Throws<AggregateException>(() => task.Wait());
+
+            timer.Stop();
+
+            Assert.AreEqual(1, tracker.CallCount);
+        }
+
+
+        class Tracker
+        {
+            readonly int _repeatCount;
+            readonly CancellationTokenSource _source;
+
+            int _callCount;
+
+            public Tracker(int repeatCount)
+            {
+                _repeatCount = repeatCount;
+                _source = new CancellationTokenSource();
+            }
+
+            public CancellationToken Token
+            {
+                get { return _source.Token; }
+            }
+
+            public int CallCount
+            {
+                get { return _callCount; }
+            }
+
+            public void RepeatedMethod()
+            {
+                int count = Interlocked.Increment(ref _callCount);
+                if (count == _repeatCount)
+                    _source.Cancel();
+                if (count > _repeatCount)
+                    throw new InvalidOperationException("Repeated too many times.");
+
+                throw new InvalidOperationException("Expected");
+            }
+        }
+    }
 }

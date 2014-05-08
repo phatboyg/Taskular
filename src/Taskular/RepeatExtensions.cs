@@ -42,6 +42,37 @@ namespace Taskular
         /// Retry a task composition using the specified retry policy
         /// </summary>
         /// <param name="composer">The task composer</param>
+        /// <param name="initialDelay">The initial delay before the first execution</param>
+        /// <param name="interval">The interval between each repetition</param>
+        /// <param name="callback">The task composition callback</param>
+        /// <param name="repeatCancellationToken">A cancellation token for the repeat-portion of the task composer</param>
+        /// <returns>The original task composer</returns>
+        public static Composer Repeat(this Composer composer, TimeSpan initialDelay, TimeSpan interval, Action<Composer> callback,
+            CancellationToken repeatCancellationToken = default(CancellationToken))
+        {
+            if (interval < TimeSpan.Zero)
+            {
+                throw new ArgumentOutOfRangeException("interval",
+                    "The interval must be non-negative, and it must be less than or equal to Int32.MaxValue.");
+            }
+
+            if (initialDelay < TimeSpan.Zero)
+            {
+                throw new ArgumentOutOfRangeException("initialDelay",
+                    "The initialDelay must be non-negative, and it must be less than or equal to Int32.MaxValue.");
+            }
+
+            composer.Delay(initialDelay);
+
+            composer.ComposeTask(taskComposer => Attempt(taskComposer, interval, callback, repeatCancellationToken));
+
+            return composer;
+        }
+
+        /// <summary>
+        /// Retry a task composition using the specified retry policy
+        /// </summary>
+        /// <param name="composer">The task composer</param>
         /// <param name="millisecondsInterval"></param>
         /// <param name="callback">The task composition callback</param>
         /// <param name="repeatCancellationToken"></param>
@@ -54,6 +85,38 @@ namespace Taskular
                 throw new ArgumentOutOfRangeException("millisecondsInterval",
                     "The interval must be non-negative, and it must be less than or equal to Int32.MaxValue.");
             }
+
+            composer.ComposeTask(
+                taskComposer => Attempt(taskComposer, TimeSpan.FromMilliseconds(millisecondsInterval), callback, repeatCancellationToken));
+
+            return composer;
+        }
+
+        /// <summary>
+        /// Retry a task composition using the specified retry policy
+        /// </summary>
+        /// <param name="composer">The task composer</param>
+        /// <param name="millisecondsInitialDelay">The initial delay before the first execution in milliseconds</param>
+        /// <param name="millisecondsInterval"></param>
+        /// <param name="callback">The task composition callback</param>
+        /// <param name="repeatCancellationToken"></param>
+        /// <returns>The original task composer</returns>
+        public static Composer Repeat(this Composer composer, int millisecondsInitialDelay, int millisecondsInterval, Action<Composer> callback,
+            CancellationToken repeatCancellationToken)
+        {
+            if (millisecondsInterval < 0)
+            {
+                throw new ArgumentOutOfRangeException("millisecondsInterval",
+                    "The interval must be non-negative, and it must be less than or equal to Int32.MaxValue.");
+            }
+
+            if (millisecondsInitialDelay < 0)
+            {
+                throw new ArgumentOutOfRangeException("millisecondsInitialDelay",
+                    "The initialDelay must be non-negative, and it must be less than or equal to Int32.MaxValue.");
+            }
+
+            composer.Delay(millisecondsInitialDelay);
 
             composer.ComposeTask(
                 taskComposer => Attempt(taskComposer, TimeSpan.FromMilliseconds(millisecondsInterval), callback, repeatCancellationToken));
