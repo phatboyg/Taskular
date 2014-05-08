@@ -74,5 +74,18 @@ namespace Taskular
         {
             return new ExponentialIntervalRetryPolicy(retryLimit, minInterval, maxInterval, intervalDelta);
         }
+
+        /// <summary>
+        /// Create an incremental retry policy with the specified number of retry attempts with an incrementing
+        /// interval between retries
+        /// </summary>
+        /// <param name="retryLimit">The number of retry attempts</param>
+        /// <param name="initialInterval">The initial retry interval</param>
+        /// <param name="intervalIncrement">The interval to add to the retry interval with each subsequent retry</param>
+        /// <returns></returns>
+        public static IRetryPolicy Incremental(int retryLimit, TimeSpan initialInterval, TimeSpan intervalIncrement)
+        {
+            return new IncrementalRetryPolicy(retryLimit, initialInterval, intervalIncrement);
+        }
     }
 }

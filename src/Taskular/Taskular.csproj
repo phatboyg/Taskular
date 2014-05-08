@@ -50,6 +50,7 @@
     <Compile Include="FinallyExtensions.cs" />
     <Compile Include="IRetryPolicy.cs" />
     <Compile Include="Policies\ExponentialIntervalRetryPolicy.cs" />
+    <Compile Include="Policies\IncrementalRetryPolicy.cs" />
     <Compile Include="Policies\IntervalRetryPolicy.cs" />
     <Compile Include="Policies\ImmediateRetryPolicy.cs" />
     <Compile Include="Policies\NoRetryPolicy.cs" />
