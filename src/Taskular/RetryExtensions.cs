@@ -11,7 +11,7 @@
 namespace Taskular
 {
     using System;
-    using System.Collections.Generic;
+    using Policies;
 
 
     public static class RetryExtensions
@@ -23,42 +23,40 @@ namespace Taskular
         /// <param name="retryPolicy">The retry policy</param>
         /// <param name="callback">The task composition callback</param>
         /// <returns>The original task composer</returns>
-        public static Composer Retry(this Composer composer, ITaskRetryPolicy retryPolicy, Action<Composer> callback)
+        public static Composer Retry(this Composer composer, IRetryPolicy retryPolicy, Action<Composer> callback)
         {
-            IEnumerator<RetryAttempt> retryInterval = null;
+            IRetryContext retryContext = null;
             composer.ComposeTask(taskComposer =>
             {
-                retryInterval = retryPolicy.GetRetryInterval();
+                retryContext = retryPolicy.GetRetryContext();
 
-                Attempt(taskComposer, retryInterval, callback);
+                Attempt(taskComposer, retryContext, callback);
             });
 
-            composer.Finally(() =>
+            composer.Finally(status =>
             {
-                if (retryInterval != null)
-                    retryInterval.Dispose();
+                if (retryContext != null)
+                    retryContext.Complete(status);
             });
 
             return composer;
         }
 
-        static void Attempt(Composer composer, IEnumerator<RetryAttempt> retryInterval, Action<Composer> callback)
+        static void Attempt(Composer composer, IRetryContext retryContext, Action<Composer> callback)
         {
             composer.ComposeTask(callback);
 
             composer.Compensate(compensation =>
             {
-                if (!retryInterval.MoveNext())
-                    return compensation.Throw();
-
-                if (!retryInterval.Current.CanRetry(compensation.Exception))
+                TimeSpan delay;
+                if (!retryContext.CanRetry(compensation.Exception, out delay))
                     return compensation.Throw();
 
                 return compensation.ComposeTask(x =>
                 {
-                    x.Delay(retryInterval.Current.Delay);
+                    x.Delay(delay);
 
-                    Attempt(x, retryInterval, callback);
+                    Attempt(x, retryContext, callback);
                 });
             });
         }
@@ -71,44 +69,40 @@ namespace Taskular
         /// <param name="retryPolicy">The retry policy</param>
         /// <param name="callback">The task composition callback</param>
         /// <returns>The original task composer</returns>
-        public static Composer<T> Retry<T>(this Composer<T> composer, ITaskRetryPolicy retryPolicy,
-            Action<Composer<T>> callback)
+        public static Composer<T> Retry<T>(this Composer<T> composer, IRetryPolicy retryPolicy, Action<Composer<T>> callback)
         {
-            IEnumerator<RetryAttempt> retryInterval = null;
+            IRetryContext retryContext = null;
             composer.ComposeTask(taskComposer =>
             {
-                retryInterval = retryPolicy.GetRetryInterval();
+                retryContext = retryPolicy.GetRetryContext();
 
-                Attempt(taskComposer, retryInterval, callback);
+                Attempt(taskComposer, retryContext, callback);
             });
 
-            composer.Finally(() =>
+            composer.Finally((_, status) =>
             {
-                if (retryInterval != null)
-                    retryInterval.Dispose();
+                if (retryContext != null)
+                    retryContext.Complete(status);
             });
 
             return composer;
         }
 
-        static void Attempt<T>(Composer<T> composer, IEnumerator<RetryAttempt> retryInterval,
-            Action<Composer<T>> callback)
+        static void Attempt<T>(Composer<T> composer, IRetryContext retryContext, Action<Composer<T>> callback)
         {
             composer.ComposeTask(callback);
 
             composer.Compensate(compensation =>
             {
-                if (!retryInterval.MoveNext())
-                    return compensation.Throw();
-
-                if (!retryInterval.Current.CanRetry(compensation.Exception))
+                TimeSpan delay;
+                if (!retryContext.CanRetry(compensation.Exception, out delay))
                     return compensation.Throw();
 
                 return compensation.ComposeTask(x =>
                 {
-                    x.Delay(retryInterval.Current.Delay);
+                    x.Delay(delay);
 
-                    Attempt(x, retryInterval, callback);
+                    Attempt(x, retryContext, callback);
                 });
             });
         }

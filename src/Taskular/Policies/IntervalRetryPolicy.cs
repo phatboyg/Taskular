@@ -15,12 +15,12 @@ namespace Taskular.Policies
     using System.Linq;
 
 
-    public class IntervalTaskRetryPolicy :
-        ITaskRetryPolicy
+    public class IntervalRetryPolicy :
+        IRetryPolicy
     {
-        readonly IEnumerable<TimeSpan> _intervals;
+        readonly TimeSpan[] _intervals;
 
-        public IntervalTaskRetryPolicy(params TimeSpan[] intervals)
+        public IntervalRetryPolicy(params TimeSpan[] intervals)
         {
             if (intervals == null)
                 throw new ArgumentNullException("intervals");
@@ -30,7 +30,7 @@ namespace Taskular.Policies
             _intervals = intervals;
         }
 
-        public IntervalTaskRetryPolicy(params int[] intervals)
+        public IntervalRetryPolicy(params int[] intervals)
         {
             if (intervals == null)
                 throw new ArgumentNullException("intervals");
@@ -40,9 +40,9 @@ namespace Taskular.Policies
             _intervals = intervals.Select(x => TimeSpan.FromMilliseconds(x)).ToArray();
         }
 
-        public IEnumerator<RetryAttempt> GetRetryInterval()
+        public IRetryContext GetRetryContext()
         {
-            return _intervals.Select((x, index) => new TaskRetryAttempt(this, index, x)).GetEnumerator();
+            return new IntervalRetryContext(this, _intervals);
         }
 
         public bool CanRetry(Exception exception)

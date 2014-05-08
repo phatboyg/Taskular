@@ -59,7 +59,7 @@
         /// <param name="continuation">The continuation method</param>
         /// <param name="options">The task execution options</param>
         /// <returns></returns>
-        Composer<T> Finally(Action<T, TaskStatus> continuation, ExecuteOptions options);
+        Composer<T> Finally(Action<T, TaskStatus> continuation, ExecuteOptions options = ExecuteOptions.None);
 
         /// <summary>
         ///     Add a task that faults the composition

@@ -24,9 +24,12 @@ namespace Taskular
                     "The delay must be non-negative or -1, and it must be less than or equal to Int32.MaxValue.");
             }
 
-            composer.ExecuteTask((payload, cancellationToken) =>
-                Task.Delay(millisecondsDelay, cancellationToken).ContinueWith(x => payload, cancellationToken,
-                    TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default));
+            composer.ExecuteTask(async (payload, cancellationToken) =>
+            {
+                await Task.Delay(millisecondsDelay, cancellationToken);
+
+                return payload;
+            });
 
             return composer;
         }
@@ -39,9 +42,12 @@ namespace Taskular
                     "The delay must be non-negative or -1, and it must be less than or equal to Int32.MaxValue.");
             }
 
-            composer.ExecuteTask((payload, cancellationToken) =>
-                Task.Delay(delay, cancellationToken).ContinueWith(x => payload, cancellationToken,
-                    TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default));
+            composer.ExecuteTask(async (payload, cancellationToken) =>
+            {
+                await Task.Delay(delay, cancellationToken);
+
+                return payload;
+            });
 
             return composer;
         }

@@ -11,23 +11,22 @@
 namespace Taskular.Policies
 {
     using System;
-    using System.Collections.Generic;
+    using System.Linq;
 
 
-    public class NoDelayTaskRetryPolicy :
-        ITaskRetryPolicy
+    public class ImmediateRetryPolicy :
+        IRetryPolicy
     {
-        readonly int _retryCount;
+        readonly TimeSpan[] _intervals;
 
-        public NoDelayTaskRetryPolicy(int retryCount)
+        public ImmediateRetryPolicy(int retryCount)
         {
-            _retryCount = retryCount;
+            _intervals = Enumerable.Repeat(TimeSpan.Zero, retryCount).ToArray();
         }
 
-        public IEnumerator<RetryAttempt> GetRetryInterval()
+        public IRetryContext GetRetryContext()
         {
-            for (int i = 0; i < _retryCount; i++)
-                yield return new TaskRetryAttempt(this, i, TimeSpan.Zero);
+            return new IntervalRetryContext(this, _intervals);
         }
 
         public bool CanRetry(Exception exception)

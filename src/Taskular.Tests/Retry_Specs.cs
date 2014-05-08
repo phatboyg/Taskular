@@ -26,7 +26,7 @@ namespace Taskular.Tests
         {
             var tracker = new Tracker(3);
 
-            var retryPolicy = new NoDelayTaskRetryPolicy(5);
+            var retryPolicy = new ImmediateRetryPolicy(5);
 
             Composer composer = new TaskComposer();
 
@@ -42,7 +42,7 @@ namespace Taskular.Tests
         {
             var tracker = new Tracker(3);
 
-            var retryPolicy = new IntervalTaskRetryPolicy(10, 50, 500, 1000);
+            var retryPolicy = new IntervalRetryPolicy(10, 50, 500, 1000);
 
             Composer composer = new TaskComposer();
 

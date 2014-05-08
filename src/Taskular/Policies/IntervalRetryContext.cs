@@ -14,39 +14,34 @@ namespace Taskular.Policies
     using System.Threading.Tasks;
 
 
-    public class NoRetryPolicy :
-        IRetryPolicy
+    public class IntervalRetryContext :
+        IRetryContext
     {
-        readonly IRetryContext _retryContext;
+        readonly TimeSpan[] _delays;
+        readonly IRetryPolicy _policy;
+        int _retryNumber;
 
-        public NoRetryPolicy()
+        public IntervalRetryContext(IRetryPolicy policy, TimeSpan[] delays)
         {
-            _retryContext = new NoRetryContext();
+            _policy = policy;
+            _delays = delays;
         }
 
-        public IRetryContext GetRetryContext()
+        public void Complete(TaskStatus status)
         {
-            return _retryContext;
         }
 
-        public bool CanRetry(Exception exception)
+        public bool CanRetry(Exception exception, out TimeSpan delay)
         {
+            bool canRetry = _policy.CanRetry(exception);
+            if (canRetry && _retryNumber < _delays.Length)
+            {
+                delay = _delays[_retryNumber++];
+                return true;
+            }
+
+            delay = TimeSpan.Zero;
             return false;
-        }
-
-
-        class NoRetryContext :
-            IRetryContext
-        {
-            public bool CanRetry(Exception exception, out TimeSpan delay)
-            {
-                delay = TimeSpan.Zero;
-                return false;
-            }
-
-            public void Complete(TaskStatus status)
-            {
-            }
         }
     }
 }
