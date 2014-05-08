@@ -14,47 +14,41 @@ namespace Taskular.Tests
     using System.Diagnostics;
     using System.Threading;
     using NUnit.Framework;
-    using Policies;
-    using TaskComposers;
 
 
     [TestFixture]
     public class When_using_the_retry_extension
     {
         [Test]
-        public void Should_call_the_method_three_times()
+        public void Should_call_the_method_for_each_timespan()
         {
             var tracker = new Tracker(3);
 
-            var retryPolicy = new ImmediateRetryPolicy(5);
+            IRetryPolicy retryPolicy = RetryPolicy.Intervals(10, 50, 500, 1000);
 
-            Composer composer = new TaskComposer();
+            var task = ComposerFactory.Compose(composer => composer.Retry(retryPolicy, x => x.Execute(tracker.FaultingMethod)));
 
-            composer.Retry(retryPolicy, x => x.Execute(tracker.FaultingMethod));
+            Stopwatch timer = Stopwatch.StartNew();
 
-            composer.Task.Wait();
+            task.Wait();
+
+            timer.Stop();
+
+            Console.WriteLine("Timespan: {0}", timer.Elapsed);
 
             Assert.AreEqual(4, tracker.CallCount);
         }
 
         [Test]
-        public void Should_call_the_method_for_each_timespan()
+        public void Should_call_the_method_three_times()
         {
             var tracker = new Tracker(3);
 
-            var retryPolicy = new IntervalRetryPolicy(10, 50, 500, 1000);
+            IRetryPolicy retryPolicy = RetryPolicy.Immediate(5);
 
-            Composer composer = new TaskComposer();
+            var task = ComposerFactory.Compose(composer => composer.Retry(retryPolicy, x => x.Execute(tracker.FaultingMethod)));
 
-            composer.Retry(retryPolicy, x => x.Execute(tracker.FaultingMethod));
-
-            Stopwatch timer = Stopwatch.StartNew();
-
-            composer.Task.Wait();
-
-            timer.Stop();
-
-            Console.WriteLine("Timespan: {0}", timer.Elapsed);
+            task.Wait();
 
             Assert.AreEqual(4, tracker.CallCount);
         }

@@ -14,29 +14,22 @@ namespace Taskular.Policies
     using System.Linq;
 
 
-    public class IntervalRetryPolicy :
+    public class ExponentialIntervalRetryPolicy :
         IRetryPolicy
     {
         readonly TimeSpan[] _intervals;
 
-        public IntervalRetryPolicy(params TimeSpan[] intervals)
+        public ExponentialIntervalRetryPolicy(int retryLimit, TimeSpan minDelay, TimeSpan maxDelay, TimeSpan delayDelta)
         {
-            if (intervals == null)
-                throw new ArgumentNullException("intervals");
-            if (intervals.Length == 0)
-                throw new ArgumentOutOfRangeException("intervals", "At least one interval must be specified");
+            var rand = new Random();
 
-            _intervals = intervals;
-        }
-
-        public IntervalRetryPolicy(params int[] intervals)
-        {
-            if (intervals == null)
-                throw new ArgumentNullException("intervals");
-            if (intervals.Length == 0)
-                throw new ArgumentOutOfRangeException("intervals", "At least one interval must be specified");
-
-            _intervals = intervals.Select(x => TimeSpan.FromMilliseconds(x)).ToArray();
+            _intervals = Enumerable.Repeat(minDelay.TotalMilliseconds, retryLimit)
+                .Select((min, index) => min + (int)((Math.Pow(2, index)
+                                                     * rand.Next((int)(delayDelta.TotalMilliseconds * 0.8),
+                                                         (int)(delayDelta.TotalMilliseconds * 1.2)))))
+                .Select(x => Math.Min((int)maxDelay.TotalMilliseconds, x))
+                .Select(TimeSpan.FromMilliseconds)
+                .ToArray();
         }
 
         public IRetryContext GetRetryContext()

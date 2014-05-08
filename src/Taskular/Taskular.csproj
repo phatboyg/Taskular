@@ -48,8 +48,8 @@
     <Compile Include="DelayExtensions.cs" />
     <Compile Include="ExecuteOptions.cs" />
     <Compile Include="FinallyExtensions.cs" />
-    <Compile Include="Intervals\FixedRepeatInterval.cs" />
     <Compile Include="IRetryPolicy.cs" />
+    <Compile Include="Policies\ExponentialIntervalRetryPolicy.cs" />
     <Compile Include="Policies\IntervalRetryPolicy.cs" />
     <Compile Include="Policies\ImmediateRetryPolicy.cs" />
     <Compile Include="Policies\NoRetryPolicy.cs" />
@@ -57,15 +57,17 @@
     <Compile Include="Policies\IntervalRetryContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RepeatExtensions.cs" />
-    <Compile Include="RepeatInterval.cs" />
     <Compile Include="RetryExtensions.cs" />
     <Compile Include="Exceptions\TaskComposerException.cs" />
     <Compile Include="Exceptions\TaskularException.cs" />
+    <Compile Include="RetryPolicy.cs" />
     <Compile Include="TaskComposers\TaskComposer.cs" />
     <Compile Include="TaskComposers\TaskComposerT.cs" />
     <Compile Include="TaskUtil.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Intervals\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
