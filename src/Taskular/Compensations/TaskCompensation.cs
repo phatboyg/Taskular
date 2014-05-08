@@ -8,9 +8,10 @@
 // Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
 // on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and limitations under the License.
-namespace Taskular
+namespace Taskular.Compensations
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
 
 
@@ -20,11 +21,13 @@ namespace Taskular
         readonly Exception _exception;
         readonly Task<T> _faultedTask;
         readonly T _payload;
+        readonly CancellationToken _cancellationToken;
 
-        public TaskCompensation(Task<T> faultedTask, T payload)
+        public TaskCompensation(Task<T> faultedTask, T payload, CancellationToken cancellationToken)
         {
             _faultedTask = faultedTask;
             _payload = payload;
+            _cancellationToken = cancellationToken;
             _exception = faultedTask.Exception != null
                 ? faultedTask.Exception.GetBaseException()
                 : null;
@@ -33,6 +36,11 @@ namespace Taskular
         T Compensation<T>.Payload
         {
             get { return _payload; }
+        }
+
+        public CancellationToken CancellationToken
+        {
+            get { return _cancellationToken; }
         }
 
         Exception Compensation<T>.Exception

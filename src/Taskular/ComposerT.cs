@@ -1,14 +1,4 @@
-﻿// Copyright 2007-2014 Chris Patterson
-// 
-// Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
-// with the License. You may obtain a copy of the License at 
-// 
-//     http://www.apache.org/licenses/LICENSE-2.0
-// 
-// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
-// on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and limitations under the License.
-namespace Taskular
+﻿namespace Taskular
 {
     using System;
     using System.Threading;
@@ -21,14 +11,23 @@ namespace Taskular
     ///     single task on the parent chain. The Execute/Compensate/Finally methods allow the concepts of try/catch/finally to
     ///     be mapped to tasks as well.
     /// </summary>
-    public interface Composer
+    /// <typeparam name="T">The payload type for the composer</typeparam>
+    public interface Composer<T>
     {
+        /// <summary>
+        ///     The cancellation token that is shared by all tasks in the task chain
+        /// </summary>
         CancellationToken CancellationToken { get; }
 
         /// <summary>
         ///     The last Task in the chain. This task changes with every task that is added to the chain
         /// </summary>
-        Task Task { get; }
+        Task<T> Task { get; }
+
+        /// <summary>
+        ///     The payload of the composer
+        /// </summary>
+        T Payload { get; }
 
         /// <summary>
         ///     Execute an taskFactory with the specified payload.
@@ -36,7 +35,7 @@ namespace Taskular
         /// <param name="action">The taskFactory to execute</param>
         /// <param name="options">The task execution options</param>
         /// <returns></returns>
-        Composer Execute(Action action, ExecuteOptions options = ExecuteOptions.None);
+        Composer<T> Execute(Action<T> action, ExecuteOptions options = ExecuteOptions.None);
 
         /// <summary>
         ///     Execute an taskFactory with the specified payload.
@@ -44,14 +43,15 @@ namespace Taskular
         /// <param name="taskFactory">The taskFactory to execute</param>
         /// <param name="options">The task execution options</param>
         /// <returns></returns>
-        Composer ExecuteTask(Func<CancellationToken, Task> taskFactory, ExecuteOptions options = ExecuteOptions.None);
+        Composer<T> ExecuteTask(Func<T, CancellationToken, Task<T>> taskFactory,
+            ExecuteOptions options = ExecuteOptions.None);
 
         /// <summary>
         ///     If a previous task faulted, run a compensating taskFactory to handle the fault.
         /// </summary>
         /// <param name="compensation">The compensation context</param>
         /// <returns>A compensation result indicating the disposition of the fault</returns>
-        Composer Compensate(Func<Compensation, CompensationResult> compensation);
+        Composer<T> Compensate(Func<Compensation<T>, CompensationResult<T>> compensation);
 
         /// <summary>
         ///     Adds a action that is always run, regardless of a successful or exceptional condition
@@ -59,7 +59,7 @@ namespace Taskular
         /// <param name="continuation">The continuation method</param>
         /// <param name="options">The task execution options</param>
         /// <returns></returns>
-        Composer Finally(Action<TaskStatus> continuation, ExecuteOptions options = ExecuteOptions.None);
+        Composer<T> Finally(Action<T, TaskStatus> continuation, ExecuteOptions options);
 
         /// <summary>
         ///     Add a task that faults the composition
@@ -67,7 +67,7 @@ namespace Taskular
         /// <typeparam name="TException"></typeparam>
         /// <param name="exception"></param>
         /// <returns></returns>
-        Composer Fault<TException>(TException exception)
+        Composer<T> Fault<TException>(TException exception)
             where TException : Exception;
     }
 }

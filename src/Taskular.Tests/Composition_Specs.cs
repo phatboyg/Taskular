@@ -14,6 +14,7 @@ namespace Taskular.Tests
     {
         using System;
         using NUnit.Framework;
+        using TaskComposers;
 
 
         [TestFixture]
@@ -22,7 +23,7 @@ namespace Taskular.Tests
             [Test]
             public async void Should_support_cool_stuff()
             {
-                var factorySideCarrier = new FactorySideCarrier<B>();
+                SideCarrier<B> factorySideCarrier = new FactorySideCarrier<B>();
                 var carrier = new AircraftCarrier();
 
                 var payload = new PayloadImpl<A>(new A());
@@ -40,9 +41,7 @@ namespace Taskular.Tests
             {
                 public void Compose<TPayload>(Composer<Payload<TPayload>> composer, Carrier<Tuple<TPayload, T>> next)
                 {
-                    T data = default(T);
-                    composer.Execute(() => data = new T());
-                    composer.ComposeCarrier(next, composer.Payload.MergeRight(data));
+                    composer.ComposeTask(p => composer.Payload.MergeRight(new T()), next.Compose);
                 }
             }
 
@@ -123,8 +122,8 @@ namespace Taskular.Tests
                 return PayloadProxy.Create(payload, payload.Data, right);
             }
 
-            public static Composer<T> ComposeCarrier<T, TPayload>(this Composer<T> composer, Carrier<TPayload> next,
-                Payload<TPayload> payload)
+            public static Composer<Payload<T>> ComposeCarrier<T, TPayload>(this Composer<Payload<T>> composer, Carrier<Tuple<T,TPayload>> next,
+                Func<Payload<T>, Payload<Tuple<T,TPayload>>> payload)
             {
                 return composer.ComposeTask(payload, next.Compose);
             }

@@ -1,4 +1,4 @@
-// Copyright 2007-2014 Chris Patterson
+﻿// Copyright 2007-2014 Chris Patterson
 // 
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at 
@@ -8,97 +8,12 @@
 // Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
 // on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and limitations under the License.
-namespace Taskular
+namespace Taskular.TaskComposers
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-
-
-    public class TaskComposer :
-        Composer
-    {
-        readonly CancellationToken _cancellationToken;
-        readonly Composer<Unit> _composer;
-
-        public TaskComposer(CancellationToken cancellationToken = default(CancellationToken))
-        {
-            _cancellationToken = cancellationToken;
-
-            _composer = new TaskComposer<Unit>(default(Unit), cancellationToken);
-        }
-
-
-        CancellationToken Composer.CancellationToken
-        {
-            get { return _cancellationToken; }
-        }
-
-        Task Composer.Task
-        {
-            get { return _composer.Task; }
-        }
-
-        Composer Composer.Execute(Action action, ExecuteOptions options)
-        {
-            _composer.Execute(x => action(), options);
-            return this;
-        }
-
-        Composer Composer.ExecuteTask(Func<CancellationToken, Task> taskFactory, ExecuteOptions options)
-        {
-            _composer.ExecuteTask((x, token) => taskFactory(token)
-                .ContinueWith(innerTask => _composer.Payload, _cancellationToken), options);
-            return this;
-        }
-
-        Composer Composer.Compensate(Func<Compensation, CompensationResult> compensation)
-        {
-            _composer.Compensate(x =>
-            {
-                var taskCompensation = new CompensationProxy<Unit>(x);
-
-                CompensationResult compensationResult = compensation(taskCompensation);
-
-                var result = compensationResult as CompensationResult<Unit>;
-                if (result != null)
-                    return result;
-
-                if (compensationResult.Task.IsCompleted)
-                {
-                    if (compensationResult.Task.IsFaulted)
-                        return x.Task(TaskUtil.Faulted<Unit>(compensationResult.Task.Exception.InnerExceptions));
-
-                    if (compensationResult.Task.IsCanceled || _cancellationToken.IsCancellationRequested)
-                        return x.Task(TaskUtil.Canceled<Unit>());
-
-                    if (compensationResult.Task.Status == TaskStatus.RanToCompletion)
-                        return x.Task(TaskUtil.Completed(default(Unit)));
-                }
-
-                return x.Task(compensationResult.Task.ContinueWith(_ => x.Payload,
-                    TaskContinuationOptions.ExecuteSynchronously));
-            });
-            return this;
-        }
-
-        Composer Composer.Finally(Action<TaskStatus> continuation, ExecuteOptions options)
-        {
-            _composer.Finally((x, status) => continuation(status), options);
-            return this;
-        }
-
-        Composer Composer.Fault<TException>(TException exception)
-        {
-            _composer.Fault(exception);
-            return this;
-        }
-
-
-        struct Unit
-        {
-        }
-    }
+    using Compensations;
 
 
     public class TaskComposer<T> :
@@ -150,7 +65,7 @@ namespace Taskular
             if (_task.Status == TaskStatus.RanToCompletion)
                 return this;
 
-            _task = Compensate(_task, x => compensation(new TaskCompensation<T>(x, _payload)).Task);
+            _task = Compensate(_task, x => compensation(new TaskCompensation<T>(x, _payload, _cancellationToken)).Task);
             return this;
         }
 

@@ -8,9 +8,10 @@
 // Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
 // on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and limitations under the License.
-namespace Taskular
+namespace Taskular.Compensations
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
 
 
@@ -22,6 +23,11 @@ namespace Taskular
         public CompensationProxy(Compensation<T> compensation)
         {
             _compensation = compensation;
+        }
+
+        public CancellationToken CancellationToken
+        {
+            get { return _compensation.CancellationToken; }
         }
 
         Exception Compensation.Exception

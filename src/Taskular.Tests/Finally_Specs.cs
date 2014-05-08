@@ -12,6 +12,7 @@ namespace Taskular.Tests
 {
     using System;
     using NUnit.Framework;
+    using TaskComposers;
 
 
     [TestFixture]

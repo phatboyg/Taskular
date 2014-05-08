@@ -1,4 +1,4 @@
-// Copyright 2007-2014 Chris Patterson
+﻿// Copyright 2007-2014 Chris Patterson
 // 
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at 
@@ -10,28 +10,21 @@
 // See the License for the specific language governing permissions and limitations under the License.
 namespace Taskular
 {
-    using System.Threading.Tasks;
+    using System;
+    using System.Collections.Generic;
 
 
-    public class CompensationResultProxy<T> :
-        CompensationResult,
-        CompensationResult<T>
+    /// <summary>
+    /// A retry policy is used to configure a task that should be retried in the event of failure
+    /// </summary>
+    public interface ITaskRetryPolicy
     {
-        readonly CompensationResult<T> _result;
+        /// <summary>
+        /// Returns an enumerator that can be used to go through the retries of executing a task
+        /// </summary>
+        /// <returns>A RetryInterval enumerator</returns>
+        IEnumerator<RetryInterval> GetRetryInterval();
 
-        public CompensationResultProxy(CompensationResult<T> result)
-        {
-            _result = result;
-        }
-
-        Task CompensationResult.Task
-        {
-            get { return _result.Task; }
-        }
-
-        Task<T> CompensationResult<T>.Task
-        {
-            get { return _result.Task; }
-        }
+        bool CanRetry(Exception exception);
     }
 }

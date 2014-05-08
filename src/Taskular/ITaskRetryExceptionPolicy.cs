@@ -1,4 +1,4 @@
-// Copyright 2007-2014 Chris Patterson
+﻿// Copyright 2007-2014 Chris Patterson
 // 
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at 
@@ -10,17 +10,7 @@
 // See the License for the specific language governing permissions and limitations under the License.
 namespace Taskular
 {
-    using System.Threading.Tasks;
-
-
-    public interface CompensationResult
+    public interface ITaskRetryExceptionPolicy
     {
-        Task Task { get; }
-    }
-
-
-    public interface CompensationResult<T>
-    {
-        Task<T> Task { get; }
     }
 }

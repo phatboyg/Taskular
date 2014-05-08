@@ -14,6 +14,7 @@ namespace Taskular.Tests
     {
         using System;
         using NUnit.Framework;
+        using TaskComposers;
 
 
         class Payload

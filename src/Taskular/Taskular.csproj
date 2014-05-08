@@ -36,18 +36,29 @@
   <ItemGroup>
     <Compile Include="Compensation.cs" />
     <Compile Include="CompensationResult.cs" />
-    <Compile Include="CompensationResultProxy.cs" />
+    <Compile Include="Compensations\CompensationProxy.cs" />
+    <Compile Include="Compensations\CompensationResultProxy.cs" />
+    <Compile Include="Compensations\TaskCompensation.cs" />
+    <Compile Include="CompensationT.cs" />
     <Compile Include="Composer.cs" />
     <Compile Include="ComposerExtensions.cs" />
+    <Compile Include="ComposerT.cs" />
     <Compile Include="DelayExtensions.cs" />
     <Compile Include="ExecuteOptions.cs" />
     <Compile Include="FinallyExtensions.cs" />
+    <Compile Include="ITaskRetryExceptionPolicy.cs" />
+    <Compile Include="ITaskRetryPolicy.cs" />
+    <Compile Include="Policies\IntervalTaskRetryPolicy.cs" />
+    <Compile Include="Policies\NoDelayTaskRetryPolicy.cs" />
+    <Compile Include="Policies\NoRetryPolicy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TaskCompensation.cs" />
-    <Compile Include="CompensationProxy.cs" />
-    <Compile Include="TaskComposer.cs" />
+    <Compile Include="RetryExtensions.cs" />
+    <Compile Include="RetryInterval.cs" />
     <Compile Include="Exceptions\TaskComposerException.cs" />
     <Compile Include="Exceptions\TaskularException.cs" />
+    <Compile Include="TaskComposers\TaskComposer.cs" />
+    <Compile Include="TaskComposers\TaskComposerT.cs" />
+    <Compile Include="TaskRetryInterval.cs" />
     <Compile Include="TaskUtil.cs" />
   </ItemGroup>
   <ItemGroup />

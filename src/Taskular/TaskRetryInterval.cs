@@ -1,4 +1,4 @@
-// Copyright 2007-2014 Chris Patterson
+﻿// Copyright 2007-2014 Chris Patterson
 // 
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at 
@@ -10,17 +10,27 @@
 // See the License for the specific language governing permissions and limitations under the License.
 namespace Taskular
 {
-    using System.Threading.Tasks;
+    using System;
 
 
-    public interface CompensationResult
+    class TaskRetryInterval :
+        RetryInterval
     {
-        Task Task { get; }
-    }
+        readonly ITaskRetryPolicy _policy;
 
+        public TaskRetryInterval(ITaskRetryPolicy policy, int attempt, TimeSpan delay)
+        {
+            _policy = policy;
+            Attempt = attempt;
+            Delay = delay;
+        }
 
-    public interface CompensationResult<T>
-    {
-        Task<T> Task { get; }
+        public int Attempt { get; private set; }
+        public TimeSpan Delay { get; private set; }
+
+        public bool CanRetry(Exception exception)
+        {
+            return _policy.CanRetry(exception);
+        }
     }
 }

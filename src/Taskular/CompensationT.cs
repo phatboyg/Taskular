@@ -15,7 +15,7 @@ namespace Taskular
     using System.Threading.Tasks;
 
 
-    public interface Compensation
+    public interface Compensation<T>
     {
         CancellationToken CancellationToken { get; }
 
@@ -24,32 +24,42 @@ namespace Taskular
         /// </summary>
         Exception Exception { get; }
 
+        /// <summary>
+        ///     The original payload
+        /// </summary>
+        T Payload { get; }
 
         /// <summary>
         ///     Mark the exception as handled, preventing further compensation
         /// </summary>
         /// <returns></returns>
-        CompensationResult Handled();
+        CompensationResult<T> Handled();
+
+        /// <summary>
+        ///     Mark the exception as handled, preventing further compensation
+        /// </summary>
+        /// <returns></returns>
+        CompensationResult<T> Handled(T payload);
 
         /// <summary>
         ///     Return a Task in response to the exception
         /// </summary>
         /// <param name="task"></param>
         /// <returns></returns>
-        CompensationResult Task(Task task);
+        CompensationResult<T> Task(Task<T> task);
 
         /// <summary>
         ///     Throw the specified exception instead of the exception that caused the compensation
         /// </summary>
         /// <param name="exception">The exception to throw instead of the initial exception</param>
         /// <returns></returns>
-        CompensationResult Throw<TException>(TException exception)
+        CompensationResult<T> Throw<TException>(TException exception)
             where TException : Exception;
 
         /// <summary>
         ///     Throw the exception that caused the compensation, continuing the compensation flow
         /// </summary>
         /// <returns></returns>
-        CompensationResult Throw();
+        CompensationResult<T> Throw();
     }
 }

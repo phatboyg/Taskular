@@ -8,19 +8,30 @@
 // Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
 // on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and limitations under the License.
-namespace Taskular
+namespace Taskular.Compensations
 {
     using System.Threading.Tasks;
 
 
-    public interface CompensationResult
+    public class CompensationResultProxy<T> :
+        CompensationResult,
+        CompensationResult<T>
     {
-        Task Task { get; }
-    }
+        readonly CompensationResult<T> _result;
 
+        public CompensationResultProxy(CompensationResult<T> result)
+        {
+            _result = result;
+        }
 
-    public interface CompensationResult<T>
-    {
-        Task<T> Task { get; }
+        Task CompensationResult.Task
+        {
+            get { return _result.Task; }
+        }
+
+        Task<T> CompensationResult<T>.Task
+        {
+            get { return _result.Task; }
+        }
     }
 }

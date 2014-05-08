@@ -15,6 +15,7 @@ namespace Taskular.Tests
         using System;
         using System.Threading;
         using NUnit.Framework;
+        using TaskComposers;
 
 
         class Payload
