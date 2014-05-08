@@ -16,14 +16,49 @@ A task composition can be scheduled to repeat at a designated interval until it 
 
 ## Usage
 
-The task composer is the core of Taskular. 
+The task composer is the core of Taskular. For example, to execute a single method the syntax is shown below.
 
 	var task = ComposerFactory.Compose(composer =>
 		{
 			composer.Execute(() => Console.WriteLine("Hello, World."));
 		});
 
-		
+### Task Execution
+
+In the above example, a single task is created which begins executing immediately. The returned _Task_ can then be used like any other Task, for example, it can be awaited, etc. The power comes into play in how multiple tasks can easily be composed into a sequential execution chain.
+
+    var task = ComposerFactory.Compose(composer =>
+        {
+            composer.Execute(() => Console.WriteLine("Hello, World."));
+            composer.Execute(() => Console.WriteLine("Hello, again."));
+        });
+
+Each _Execute_ method delegate will be executed sequentially. If the first _Execute_ method faults, the second method will not be executed as the chain faulted. 
+
+It's also possible to perform task execution synchronously, without relying on the Task scheduler. To execute a task synchronously, the ExecuteOptions are used.
+
+    var task = ComposerFactory.Compose(composer =>
+        {
+            composer.Execute(() => Console.WriteLine("Hello, World."), ExecuteOptions.Synchronously);
+            composer.Execute(() => Console.WriteLine("Hello, again."), ExecuteOptions.Synchronously);
+        });
+
+In this example, the both methods are executed immediately, without using a Task. This makes it possible to build highly composed task chains that execute quickly, without the overhead of the TPL. In most cases, this is useful to build a chain of tasks on an existing TPL task, to keep execution asynchronous but fast. As long as the tasks are completed, they will continue to execute synchronously. However, if a Task is scheduled in the middle that requires asynchronous execution, it can fit easily into the Task chain.
+
+
+### Compensation
+
+In order to handle faults, Taskular has the ability to specify a compensation method.
+
+    var task = ComposerFactory.Compose(composer =>
+        {
+            composer.Execute(() => throw new InvalidOperationException());
+            composer.Compensate(compensation => compensation.Handled());
+            composer.Execute(() => Console.WriteLine("Hello, World."));
+        });
+
+The first _Execute_ method throws an exception, but the following _Compensate_ method marks the exception as handled, allowing the next _Execute_ method to execute.
+
 
 ### Repeating Tasks
 
