@@ -42,23 +42,27 @@
     <Compile Include="CompensationT.cs" />
     <Compile Include="Composer.cs" />
     <Compile Include="ComposerExtensions.cs" />
+    <Compile Include="ComposerFactory.cs" />
     <Compile Include="ComposerT.cs" />
     <Compile Include="DelayExtensions.cs" />
     <Compile Include="ExecuteOptions.cs" />
     <Compile Include="FinallyExtensions.cs" />
+    <Compile Include="Intervals\FixedRepeatInterval.cs" />
     <Compile Include="ITaskRetryExceptionPolicy.cs" />
     <Compile Include="ITaskRetryPolicy.cs" />
     <Compile Include="Policies\IntervalTaskRetryPolicy.cs" />
     <Compile Include="Policies\NoDelayTaskRetryPolicy.cs" />
     <Compile Include="Policies\NoRetryPolicy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RepeatExtensions.cs" />
+    <Compile Include="RepeatInterval.cs" />
     <Compile Include="RetryExtensions.cs" />
-    <Compile Include="RetryInterval.cs" />
+    <Compile Include="RetryAttempt.cs" />
     <Compile Include="Exceptions\TaskComposerException.cs" />
     <Compile Include="Exceptions\TaskularException.cs" />
     <Compile Include="TaskComposers\TaskComposer.cs" />
     <Compile Include="TaskComposers\TaskComposerT.cs" />
-    <Compile Include="TaskRetryInterval.cs" />
+    <Compile Include="TaskRetryAttempt.cs" />
     <Compile Include="TaskUtil.cs" />
   </ItemGroup>
   <ItemGroup />

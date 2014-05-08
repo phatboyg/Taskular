@@ -40,9 +40,9 @@ namespace Taskular.Policies
             _intervals = intervals.Select(x => TimeSpan.FromMilliseconds(x)).ToArray();
         }
 
-        public IEnumerator<RetryInterval> GetRetryInterval()
+        public IEnumerator<RetryAttempt> GetRetryInterval()
         {
-            return _intervals.Select((x, index) => new TaskRetryInterval(this, index, x)).GetEnumerator();
+            return _intervals.Select((x, index) => new TaskRetryAttempt(this, index, x)).GetEnumerator();
         }
 
         public bool CanRetry(Exception exception)

@@ -33,6 +33,11 @@ namespace Taskular.Compensations
                 : null;
         }
 
+        public Task<T> FaultedTask
+        {
+            get { return _faultedTask; }
+        }
+
         T Compensation<T>.Payload
         {
             get { return _payload; }

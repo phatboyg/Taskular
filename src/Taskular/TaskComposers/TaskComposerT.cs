@@ -145,31 +145,28 @@ namespace Taskular.TaskComposers
         {
             if (task.IsCompleted)
             {
-                if (task.IsFaulted)
-                {
-                    try
-                    {
-                        Task<T> resultTask = compensationTask(task);
-                        if (resultTask == null)
-                            throw new InvalidOperationException("Sure could use a Task here buddy");
-
-                        return resultTask;
-                    }
-                    catch (Exception ex)
-                    {
-                        return TaskUtil.Faulted<T>(ex);
-                    }
-                }
-
-                if (task.IsCanceled)
-                    return TaskUtil.Canceled<T>();
-
                 if (task.Status == TaskStatus.RanToCompletion)
                 {
                     var tcs = new TaskCompletionSource<T>();
                     tcs.TrySetFromTask(task);
                     return tcs.Task;
                 }
+
+                try
+                {
+                    Task<T> resultTask = compensationTask(task);
+                    if (resultTask == null)
+                        throw new InvalidOperationException("Sure could use a Task here buddy");
+
+                    return resultTask;
+                }
+                catch (Exception ex)
+                {
+                    return TaskUtil.Faulted<T>(ex);
+                }
+
+                if (task.IsCanceled)
+                    return TaskUtil.Canceled<T>();
             }
 
             return CompensateAsync(task, compensationTask);

@@ -11,8 +11,8 @@
 namespace Taskular
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
-    using TaskComposers;
 
 
     public static class ComposerExtensions
@@ -29,7 +29,8 @@ namespace Taskular
         /// <param name="composer"></param>
         /// <param name="continuation"></param>
         /// <param name="options"></param>
-        public static Composer Finally(this Composer composer, Action continuation, ExecuteOptions options = ExecuteOptions.None)
+        public static Composer Finally(this Composer composer, Action continuation,
+            ExecuteOptions options = ExecuteOptions.None)
         {
             return composer.Finally(status => continuation(), options);
         }
@@ -40,7 +41,8 @@ namespace Taskular
         /// <param name="composer"></param>
         /// <param name="continuation"></param>
         /// <param name="options"></param>
-        public static Composer<T> Finally<T>(this Composer<T> composer, Action<T> continuation, ExecuteOptions options = ExecuteOptions.None)
+        public static Composer<T> Finally<T>(this Composer<T> composer, Action<T> continuation,
+            ExecuteOptions options = ExecuteOptions.None)
         {
             return composer.Finally((payload, status) => continuation(payload), options);
         }
@@ -51,7 +53,8 @@ namespace Taskular
         /// <param name="composer"></param>
         /// <param name="continuation"></param>
         /// <param name="options"></param>
-        public static Composer<T> Finally<T>(this Composer<T> composer, Action continuation, ExecuteOptions options = ExecuteOptions.None)
+        public static Composer<T> Finally<T>(this Composer<T> composer, Action continuation,
+            ExecuteOptions options = ExecuteOptions.None)
         {
             return composer.Finally((payload, status) => continuation(), options);
         }
@@ -77,14 +80,7 @@ namespace Taskular
         /// <returns></returns>
         public static Composer<T> ComposeTask<T>(this Composer<T> composer, Action<Composer<T>> callback)
         {
-            composer.ExecuteTask((payload, cancellationToken) =>
-            {
-                Composer<T> taskComposer = new TaskComposer<T>(composer.Payload, composer.CancellationToken);
-
-                callback(taskComposer);
-
-                return taskComposer.Task;
-            });
+            composer.ExecuteTask((payload, cancellationToken) => ComposerFactory.Compose(payload, callback, composer.CancellationToken));
 
             return composer;
         }
@@ -106,11 +102,7 @@ namespace Taskular
             {
                 TPayload taskPayload = payload(p);
 
-                Composer<TPayload> taskComposer = new TaskComposer<TPayload>(taskPayload, composer.CancellationToken);
-
-                callback(taskComposer);
-
-                await taskComposer.Task;
+                await ComposerFactory.Compose(taskPayload, callback, composer.CancellationToken);
 
                 return composer.Payload;
             });
@@ -131,11 +123,7 @@ namespace Taskular
         {
             composer.ExecuteTask(async (payload, cancellationToken) =>
             {
-                Composer taskComposer = new TaskComposer(composer.CancellationToken);
-
-                callback(taskComposer);
-
-                await taskComposer.Task;
+                await ComposerFactory.Compose(callback, composer.CancellationToken);
 
                 return composer.Payload;
             });
@@ -152,14 +140,7 @@ namespace Taskular
         /// <returns></returns>
         public static Composer ComposeTask(this Composer composer, Action<Composer> callback)
         {
-            composer.ExecuteTask(cancellationToken =>
-            {
-                Composer taskComposer = new TaskComposer(composer.CancellationToken);
-
-                callback(taskComposer);
-
-                return taskComposer.Task;
-            });
+            composer.ExecuteTask(cancellationToken => ComposerFactory.Compose(callback, composer.CancellationToken));
 
             return composer;
         }
@@ -173,11 +154,7 @@ namespace Taskular
         /// <returns></returns>
         public static CompensationResult ComposeTask(this Compensation compensation, Action<Composer> callback)
         {
-            Composer taskComposer = new TaskComposer(compensation.CancellationToken);
-
-            callback(taskComposer);
-
-            return compensation.Task(taskComposer.Task);
+            return compensation.Task(ComposerFactory.Compose(callback, compensation.CancellationToken));
         }
 
         /// <summary>
@@ -187,14 +164,9 @@ namespace Taskular
         /// <param name="compensation"></param>
         /// <param name="callback"></param>
         /// <returns></returns>
-        public static CompensationResult<T> ComposeTask<T>(this Compensation<T> compensation,
-            Action<Composer<T>> callback)
+        public static CompensationResult<T> ComposeTask<T>(this Compensation<T> compensation, Action<Composer<T>> callback)
         {
-            Composer<T> taskComposer = new TaskComposer<T>(compensation.Payload, compensation.CancellationToken);
-
-            callback(taskComposer);
-
-            return compensation.Task(taskComposer.Task);
+            return compensation.Task(ComposerFactory.Compose(compensation.Payload, callback, compensation.CancellationToken));
         }
 
 
@@ -208,18 +180,14 @@ namespace Taskular
         /// <returns></returns>
         public static CompensationResult<T> ComposeTask<T>(this Compensation<T> compensation, Action<Composer> callback)
         {
-            Composer taskComposer = new TaskComposer(compensation.CancellationToken);
+            return compensation.Task(ComposeCompensationTask(compensation.Payload, callback, compensation.CancellationToken));
+        }
 
-            callback(taskComposer);
+        static async Task<T> ComposeCompensationTask<T>(T payload, Action<Composer> callback, CancellationToken cancellationToken)
+        {
+            await ComposerFactory.Compose(callback, cancellationToken);
 
-            Func<Task<T>> awaiter = async () =>
-            {
-                await taskComposer.Task;
-
-                return compensation.Payload;
-            };
-
-            return compensation.Task(awaiter());
+            return payload;
         }
     }
 }

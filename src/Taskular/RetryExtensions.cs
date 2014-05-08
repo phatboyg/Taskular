@@ -25,7 +25,7 @@ namespace Taskular
         /// <returns>The original task composer</returns>
         public static Composer Retry(this Composer composer, ITaskRetryPolicy retryPolicy, Action<Composer> callback)
         {
-            IEnumerator<RetryInterval> retryInterval = null;
+            IEnumerator<RetryAttempt> retryInterval = null;
             composer.ComposeTask(taskComposer =>
             {
                 retryInterval = retryPolicy.GetRetryInterval();
@@ -42,7 +42,7 @@ namespace Taskular
             return composer;
         }
 
-        static void Attempt(Composer composer, IEnumerator<RetryInterval> retryInterval, Action<Composer> callback)
+        static void Attempt(Composer composer, IEnumerator<RetryAttempt> retryInterval, Action<Composer> callback)
         {
             composer.ComposeTask(callback);
 
@@ -74,7 +74,7 @@ namespace Taskular
         public static Composer<T> Retry<T>(this Composer<T> composer, ITaskRetryPolicy retryPolicy,
             Action<Composer<T>> callback)
         {
-            IEnumerator<RetryInterval> retryInterval = null;
+            IEnumerator<RetryAttempt> retryInterval = null;
             composer.ComposeTask(taskComposer =>
             {
                 retryInterval = retryPolicy.GetRetryInterval();
@@ -91,7 +91,7 @@ namespace Taskular
             return composer;
         }
 
-        static void Attempt<T>(Composer<T> composer, IEnumerator<RetryInterval> retryInterval,
+        static void Attempt<T>(Composer<T> composer, IEnumerator<RetryAttempt> retryInterval,
             Action<Composer<T>> callback)
         {
             composer.ComposeTask(callback);

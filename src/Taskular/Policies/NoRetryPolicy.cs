@@ -17,7 +17,7 @@ namespace Taskular.Policies
     public class NoRetryPolicy :
         ITaskRetryPolicy
     {
-        public IEnumerator<RetryInterval> GetRetryInterval()
+        public IEnumerator<RetryAttempt> GetRetryInterval()
         {
             yield break;
         }

@@ -30,6 +30,11 @@ namespace Taskular
         T Payload { get; }
 
         /// <summary>
+        /// The task that was faulted and is being compensated
+        /// </summary>
+        Task<T> FaultedTask { get; }
+
+        /// <summary>
         ///     Mark the exception as handled, preventing further compensation
         /// </summary>
         /// <returns></returns>

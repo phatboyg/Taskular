@@ -11,20 +11,28 @@
 namespace Taskular
 {
     using System;
-    using System.Collections.Generic;
 
 
     /// <summary>
-    /// A retry policy is used to configure a task that should be retried in the event of failure
+    /// The retry settings for the current retry interval
     /// </summary>
-    public interface ITaskRetryPolicy
+    public interface RetryAttempt
     {
         /// <summary>
-        /// Returns an enumerator that can be used to go through the retries of executing a task
+        /// Returns the attempt number of the current retry
         /// </summary>
-        /// <returns>A RetryInterval enumerator</returns>
-        IEnumerator<RetryAttempt> GetRetryInterval();
+        int RetryNumber { get; }
 
+        /// <summary>
+        /// The delay to wait before attempting the next retry
+        /// </summary>
+        TimeSpan Delay { get; }
+
+        /// <summary>
+        /// Determines if the exception can be retried per the retry policy
+        /// </summary>
+        /// <param name="exception"></param>
+        /// <returns></returns>
         bool CanRetry(Exception exception);
     }
 }

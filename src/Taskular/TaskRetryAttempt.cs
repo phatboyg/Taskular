@@ -13,19 +13,20 @@ namespace Taskular
     using System;
 
 
-    class TaskRetryInterval :
-        RetryInterval
+    class TaskRetryAttempt :
+        RetryAttempt
     {
         readonly ITaskRetryPolicy _policy;
 
-        public TaskRetryInterval(ITaskRetryPolicy policy, int attempt, TimeSpan delay)
+        public TaskRetryAttempt(ITaskRetryPolicy policy, int retryNumber, TimeSpan delay)
         {
             _policy = policy;
-            Attempt = attempt;
+
+            RetryNumber = retryNumber;
             Delay = delay;
         }
 
-        public int Attempt { get; private set; }
+        public int RetryNumber { get; private set; }
         public TimeSpan Delay { get; private set; }
 
         public bool CanRetry(Exception exception)

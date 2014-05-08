@@ -24,10 +24,10 @@ namespace Taskular.Policies
             _retryCount = retryCount;
         }
 
-        public IEnumerator<RetryInterval> GetRetryInterval()
+        public IEnumerator<RetryAttempt> GetRetryInterval()
         {
             for (int i = 0; i < _retryCount; i++)
-                yield return new TaskRetryInterval(this, i, TimeSpan.Zero);
+                yield return new TaskRetryAttempt(this, i, TimeSpan.Zero);
         }
 
         public bool CanRetry(Exception exception)

@@ -13,26 +13,16 @@ namespace Taskular
     using System;
 
 
-    /// <summary>
-    /// The retry settings for the current retry interval
-    /// </summary>
-    public interface RetryInterval
+    public interface RepeatInterval
     {
         /// <summary>
-        /// Returns the attempt number of the current retry
+        /// The number of times the task has been repeated
         /// </summary>
-        int Attempt { get; }
+        long RepeatNumber { get; }
 
         /// <summary>
-        /// The delay to wait before attempting the next retry
+        /// The delay before the next execution
         /// </summary>
         TimeSpan Delay { get; }
-
-        /// <summary>
-        /// Determines if the exception can be retried per the retry policy
-        /// </summary>
-        /// <param name="exception"></param>
-        /// <returns></returns>
-        bool CanRetry(Exception exception);
     }
 }
