@@ -27,7 +27,7 @@ namespace Taskular.Tests
         public class When_executing_a_task_of_t
         {
             [Test]
-            public async void Should_throw_the_same_exception_if_unhandled()
+            public void Should_throw_the_same_exception_if_unhandled()
             {
                 Composer<Payload> composer = new TaskComposer<Payload>(new Payload {Name = "Chris"});
 
@@ -50,7 +50,7 @@ namespace Taskular.Tests
             }
 
             [Test]
-            public async void Should_throw_the_specified_exception_if_unhandled()
+            public void Should_throw_the_specified_exception_if_unhandled()
             {
                 Composer<Payload> composer = new TaskComposer<Payload>(new Payload {Name = "Chris"});
 

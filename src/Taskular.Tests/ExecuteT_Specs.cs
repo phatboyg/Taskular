@@ -48,7 +48,7 @@ namespace Taskular.Tests
             }
 
             [Test]
-            public async void Should_use_async_processing_and_capture_exceptions()
+            public void Should_use_async_processing_and_capture_exceptions()
             {
                 var threadId = Thread.CurrentThread.ManagedThreadId;
 

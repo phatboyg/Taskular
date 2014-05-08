@@ -164,9 +164,6 @@ namespace Taskular.TaskComposers
                 {
                     return TaskUtil.Faulted<T>(ex);
                 }
-
-                if (task.IsCanceled)
-                    return TaskUtil.Canceled<T>();
             }
 
             return CompensateAsync(task, compensationTask);

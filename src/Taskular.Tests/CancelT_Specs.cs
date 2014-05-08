@@ -28,7 +28,7 @@ namespace Taskular.Tests
         public class When_canceling_a_composer
         {
             [Test]
-            public async void Should_throw_task_canceled_exception()
+            public void Should_throw_task_canceled_exception()
             {
                 var cts = new CancellationTokenSource();
 
