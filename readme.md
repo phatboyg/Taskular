@@ -45,6 +45,20 @@ It's also possible to perform task execution synchronously, without relying on t
 
 In this example, the both methods are executed immediately, without using a Task. This makes it possible to build highly composed task chains that execute quickly, without the overhead of the TPL. In most cases, this is useful to build a chain of tasks on an existing TPL task, to keep execution asynchronous but fast. As long as the tasks are completed, they will continue to execute synchronously. However, if a Task is scheduled in the middle that requires asynchronous execution, it can fit easily into the Task chain.
 
+Asynchronous methods can also be executed, using the ExecuteAsync method. For example.
+
+    var task = ComposerFactory.Compose(new Payload(), composer =>
+    {
+        composer.ExecuteAsync(async (payload, token) =>
+        {
+            var result = await SomeAsyncMethod(payload.Name);
+
+            payload.Result = result;
+        });
+    });
+
+The result of the asynchronous method is awaited, and then used to set the property on the payload. The cancellation token for the task is also available, allowing asynchronous methods to use the token to cancel operations, such as an _HttpClient_ request to a server.
+
 
 ### Compensation
 
