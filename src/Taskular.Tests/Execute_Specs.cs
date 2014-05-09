@@ -10,37 +10,33 @@
 // See the License for the specific language governing permissions and limitations under the License.
 namespace Taskular.Tests
 {
+    using System.Threading.Tasks;
     using NUnit.Framework;
-    using TaskComposers;
 
 
     [TestFixture]
     public class When_calling_execute
     {
         [Test]
-        public void Should_execute_the_method_immediately()
+        public async void Should_execute_the_method_immediately()
         {
             bool called = false;
 
-            Composer composer = new TaskComposer();
+            Task task = ComposerFactory.Compose(composer => composer.Execute(() => called = true, ExecuteOptions.RunSynchronously));
 
-            composer.Execute(() => called = true);
-
-            composer.Task.Wait();
+            await task;
 
             Assert.IsTrue(called);
         }
 
         [Test]
-        public void Should_execute_the_task()
+        public async void Should_execute_the_task()
         {
             bool called = false;
 
-            Composer composer = new TaskComposer();
+            Task task = ComposerFactory.Compose(composer => composer.Execute(() => called = true));
 
-            composer.ComposeTask(x => x.Execute(() => called = true));
-
-            composer.Task.Wait();
+            await task;
 
             Assert.IsTrue(called);
         }

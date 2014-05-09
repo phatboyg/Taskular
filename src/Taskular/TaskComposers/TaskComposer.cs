@@ -46,9 +46,9 @@ namespace Taskular.TaskComposers
             return this;
         }
 
-        Composer Composer.ExecuteTask(Func<CancellationToken, Task> taskFactory, ExecuteOptions options)
+        Composer Composer.ExecuteAsync(Func<CancellationToken, Task> taskFactory, ExecuteOptions options)
         {
-            _composer.ExecuteTask(async (x, token) =>
+            _composer.ExecuteAsync(async (x, token) =>
             {
                 await taskFactory(token);
 

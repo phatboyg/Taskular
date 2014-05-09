@@ -24,7 +24,7 @@ namespace Taskular
                     "The delay must be non-negative or -1, and it must be less than or equal to Int32.MaxValue.");
             }
 
-            composer.ExecuteTask(async (payload, cancellationToken) =>
+            composer.ExecuteAsync(async (payload, cancellationToken) =>
             {
                 await Task.Delay(millisecondsDelay, cancellationToken);
 
@@ -42,7 +42,7 @@ namespace Taskular
                     "The delay must be non-negative or -1, and it must be less than or equal to Int32.MaxValue.");
             }
 
-            composer.ExecuteTask(async (payload, cancellationToken) =>
+            composer.ExecuteAsync(async (payload, cancellationToken) =>
             {
                 await Task.Delay(delay, cancellationToken);
 
@@ -60,7 +60,7 @@ namespace Taskular
                     "The delay must be non-negative or -1, and it must be less than or equal to Int32.MaxValue.");
             }
 
-            composer.ExecuteTask(cancellationToken => Task.Delay(millisecondsDelay, cancellationToken));
+            composer.ExecuteAsync(cancellationToken => Task.Delay(millisecondsDelay, cancellationToken));
 
             return composer;
         }
@@ -73,7 +73,7 @@ namespace Taskular
                     "The delay must be non-negative or -1, and it must be less than or equal to Int32.MaxValue.");
             }
 
-            composer.ExecuteTask(cancellationToken => Task.Delay(delay, cancellationToken));
+            composer.ExecuteAsync(cancellationToken => Task.Delay(delay, cancellationToken));
 
             return composer;
         }

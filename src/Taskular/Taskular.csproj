@@ -41,7 +41,7 @@
     <Compile Include="Compensations\TaskCompensation.cs" />
     <Compile Include="CompensationT.cs" />
     <Compile Include="Composer.cs" />
-    <Compile Include="ComposerExtensions.cs" />
+    <Compile Include="ExecuteExtensions.cs" />
     <Compile Include="ComposerFactory.cs" />
     <Compile Include="ComposerT.cs" />
     <Compile Include="ComposeTaskExtensions.cs" />

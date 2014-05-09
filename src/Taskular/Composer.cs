@@ -44,7 +44,7 @@ namespace Taskular
         /// <param name="taskFactory">The taskFactory to execute</param>
         /// <param name="options">The task execution options</param>
         /// <returns></returns>
-        Composer ExecuteTask(Func<CancellationToken, Task> taskFactory, ExecuteOptions options = ExecuteOptions.None);
+        Composer ExecuteAsync(Func<CancellationToken, Task> taskFactory, ExecuteOptions options = ExecuteOptions.None);
 
         /// <summary>
         ///     If a previous task faulted, run a compensating taskFactory to handle the fault.

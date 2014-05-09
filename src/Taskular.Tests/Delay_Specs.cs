@@ -34,7 +34,7 @@
 
             composer.ComposeTask(x =>
             {
-                x.ExecuteTask(token => Task.Delay(100, token));
+                x.ExecuteAsync(token => Task.Delay(100, token));
                 x.Execute(() => delayed = ++sequenceId);
             });
 

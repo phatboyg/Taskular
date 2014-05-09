@@ -128,7 +128,7 @@ namespace Taskular
         {
             composer.ComposeTask(callback);
 
-            composer.ExecuteTask(token =>
+            composer.ExecuteAsync(token =>
             {
                 if (repeatCancellationToken.IsCancellationRequested)
                     return TaskUtil.Completed();

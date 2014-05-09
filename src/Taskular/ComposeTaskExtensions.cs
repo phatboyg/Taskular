@@ -27,7 +27,7 @@ namespace Taskular
         /// <returns></returns>
         public static Composer<T> ComposeTask<T>(this Composer<T> composer, Action<Composer<T>> callback)
         {
-            composer.ExecuteTask((payload, cancellationToken) => ComposerFactory.Compose(payload, callback, composer.CancellationToken));
+            composer.ExecuteAsync((payload, cancellationToken) => ComposerFactory.Compose(payload, callback, composer.CancellationToken));
 
             return composer;
         }
@@ -45,7 +45,7 @@ namespace Taskular
         public static Composer<T> ComposeTask<T, TPayload>(this Composer<T> composer, Func<T, TPayload> payload,
             Action<Composer<TPayload>> callback)
         {
-            composer.ExecuteTask(async (p, cancellationToken) =>
+            composer.ExecuteAsync(async (p, cancellationToken) =>
             {
                 TPayload taskPayload = payload(p);
 
@@ -68,7 +68,7 @@ namespace Taskular
         /// <returns></returns>
         public static Composer<T> ComposeTask<T>(this Composer<T> composer, Action<Composer> callback)
         {
-            composer.ExecuteTask(async (payload, cancellationToken) =>
+            composer.ExecuteAsync(async (payload, cancellationToken) =>
             {
                 await ComposerFactory.Compose(callback, composer.CancellationToken);
 
@@ -87,7 +87,7 @@ namespace Taskular
         /// <returns></returns>
         public static Composer ComposeTask(this Composer composer, Action<Composer> callback)
         {
-            composer.ExecuteTask(cancellationToken => ComposerFactory.Compose(callback, composer.CancellationToken));
+            composer.ExecuteAsync(cancellationToken => ComposerFactory.Compose(callback, composer.CancellationToken));
 
             return composer;
         }

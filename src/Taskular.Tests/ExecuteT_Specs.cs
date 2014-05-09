@@ -14,13 +14,14 @@ namespace Taskular.Tests
     {
         using System;
         using System.Threading;
+        using System.Threading.Tasks;
         using NUnit.Framework;
-        using TaskComposers;
 
 
         class Payload
         {
             public string Name { get; set; }
+            public int Result { get; set; }
         }
 
 
@@ -30,18 +31,19 @@ namespace Taskular.Tests
             [Test]
             public async void Should_use_async_processing()
             {
-                var threadId = Thread.CurrentThread.ManagedThreadId;
-
-                Composer<Payload> composer = new TaskComposer<Payload>(new Payload {Name = "Chris"});
+                int threadId = Thread.CurrentThread.ManagedThreadId;
 
                 int asyncThreadId = threadId;
-                composer.Execute(x =>
+                Task<Payload> task = ComposerFactory.Compose(new Payload {Name = "Chris"}, composer =>
+                {
+                    composer.Execute(x =>
                     {
                         x.Name = "Joe";
                         asyncThreadId = Thread.CurrentThread.ManagedThreadId;
                     });
+                });
 
-                var payload = await composer.Task;
+                Payload payload = await task;
 
                 Assert.AreEqual("Joe", payload.Name);
                 Assert.AreNotEqual(threadId, asyncThreadId);
@@ -50,25 +52,64 @@ namespace Taskular.Tests
             [Test]
             public void Should_use_async_processing_and_capture_exceptions()
             {
-                var threadId = Thread.CurrentThread.ManagedThreadId;
-
-                Composer<Payload> composer = new TaskComposer<Payload>(new Payload {Name = "Chris"});
-
+                int threadId = Thread.CurrentThread.ManagedThreadId;
                 int asyncThreadId = threadId;
-                composer.Execute(x =>
+
+                Task<Payload> task = ComposerFactory.Compose(new Payload {Name = "Chris"}, composer =>
+                {
+                    composer.ExecuteAsync(async (x,token) =>
                     {
                         x.Name = "Joe";
                         asyncThreadId = Thread.CurrentThread.ManagedThreadId;
 
                         throw new InvalidOperationException("This is expected");
                     });
+                });
 
-                Assert.Throws<InvalidOperationException>(async () =>
-                    {
-                        var payload = await composer.Task;
-                    });
+                Assert.Throws<InvalidOperationException>(async () => { Payload payload = await task; });
 
                 Assert.AreNotEqual(threadId, asyncThreadId);
+            }
+
+            [Test]
+            public void Should_call_an_async_method_nicely()
+            {
+                var task = ComposerFactory.Compose(new Payload(), composer =>
+                {
+                    composer.ExecuteAsync(async (payload, token) =>
+                    {
+                        var result = await SomeAsyncMethod(payload.Name);
+
+                        payload.Result = result;
+                    });
+                });
+            }
+
+            async Task<int> SomeAsyncMethod(string value)
+            {
+                return 27;
+            }
+
+            [Test]
+            public void Should_use_async_processing_and_capture_exceptions_synchronously()
+            {
+                int threadId = Thread.CurrentThread.ManagedThreadId;
+                int asyncThreadId = threadId;
+
+                Task<Payload> task = ComposerFactory.Compose(new Payload {Name = "Chris"}, composer =>
+                {
+                    composer.Execute(x =>
+                    {
+                        x.Name = "Joe";
+                        asyncThreadId = Thread.CurrentThread.ManagedThreadId;
+
+                        throw new InvalidOperationException("This is expected");
+                    }, ExecuteOptions.RunSynchronously);
+                });
+
+                Assert.Throws<InvalidOperationException>(async () => { Payload payload = await task; });
+
+                Assert.AreEqual(threadId, asyncThreadId, "Should have been on the same thread");
             }
         }
     }
