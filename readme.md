@@ -35,6 +35,19 @@ In the above example, a single task is created which begins executing immediatel
 
 Each _Execute_ method delegate will be executed sequentially. If the first _Execute_ method faults, the second method will not be executed as the chain faulted. 
 
+### Task<T>
+
+In addition to support the base _Task_, Taskular can also support the composition of _Task<T>_ chains.
+
+    Payload payload = new Payload { Name = "World"};
+
+    Task<Payload> task = ComposerFactory.Compose(payload, composer =>
+        {
+            composer.Execute(p => Console.WriteLine("Hello, {0}.", p.Name));
+        });
+
+This allows the Task result to be passed to each task in the chain.
+
 It's also possible to perform task execution synchronously, without relying on the Task scheduler. To execute a task synchronously, the ExecuteOptions are used.
 
     var task = ComposerFactory.Compose(composer =>
