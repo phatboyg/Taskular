@@ -39,6 +39,9 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\SolutionVersion.cs">
+      <Link>Properties\SolutionVersion.cs</Link>
+    </Compile>
     <Compile Include="CancelT_Specs.cs" />
     <Compile Include="CompensateT_Specs.cs" />
     <Compile Include="Compensate_Specs.cs" />
@@ -48,7 +51,6 @@
     <Compile Include="Execute_Specs.cs" />
     <Compile Include="Finally_Specs.cs" />
     <Compile Include="ExponentialRetry_Specs.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repeat_Specs.cs" />
     <Compile Include="Retry_Specs.cs" />
   </ItemGroup>

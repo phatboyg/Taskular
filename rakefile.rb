@@ -29,7 +29,7 @@ assemblyinfo :global_version do |asm|
   asm.product_name = PRODUCT
   asm.description = "Taskular, Composition Extensions for the Task Parallel Library"
   asm.version = FORMAL_VERSION
-  asm.file_version = FORMAL_VERSION
+  asm.file_version = NUGET_VERSION
   asm.custom_attributes :AssemblyInformationalVersion => "#{BUILD_VERSION}",
 	:ComVisibleAttribute => false,
 	:CLSCompliantAttribute => true
@@ -152,7 +152,7 @@ task :versioning do
   ENV['NUGET_VERSION'] = NUGET_VERSION = ver.format("%M.%m.%p%s")
   
   # purely M.m.p format
-  ENV['FORMAL_VERSION'] = FORMAL_VERSION = "#{ SemVer.new(ver.major, ver.minor, revision).format "%M.%m.%p"}"
+  ENV['FORMAL_VERSION'] = FORMAL_VERSION = "#{ SemVer.new(ver.major, 0, 0).format "%M.%m.%p"}"
   puts "##teamcity[buildNumber '#{BUILD_VERSION}']" # tell teamcity our decision
 end
 

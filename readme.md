@@ -2,17 +2,32 @@
 
 ## Introduction
 
-Taskular leverages the Task Parallel Library (TPL) to provide the ability to compose task chains. Taskular extends the built-in language features, including _async_ and _await_, and provides additional capabilities such as task execution, compensation, and fault handling.
+Taskular leverages the Task Parallel Library (TPL) to provide the ability to compose task chains. Taskular extends the built-in language features, including _async_ and _await_, and provides additional capabilities such as task execution, compensation, and fault handling. Additional features, including task retry, and automatically repeating tasks, are also included.
 
-## Features
+### Requirements
 
-### Retry
+Taskular requires .NET 4.5 (or later).
 
-When a task composition generates a fault, _Taskular_ can catch the fault and automatically retry the task composition using a specified retry policy. 
+### License
 
-### Repeat
+Apache 2.0 - see LICENSE
 
-A task composition can be scheduled to repeat at a designated interval until it is cancelled.
+### Getting Taskular
+
+Taskular is distributed using NuGet (http://nuget.org) and should be available in the Visual Studio Package Manager. _Note, that Taskular is strong-named, but the ```AssemblyVersion``` is locked at 1.0.0 to avoid breaking references and builds. Strong names suck, but it's hard to do some things without one._
+
+### Source
+
+The project site is located on GitHub: https://github.com/phatboyg/Taskular.git
+
+A few stupid things to think about if you're going to contribute to the project:
+
+ 1. Create all pull requests off the ```develop``` branch, in a separate branch of your own.
+ 2. Use Visual Studio 2013 if possible.
+ 3. Spaces, not Tabs. (Tools -> Options -> Text Editor -> All Languages -> Tabs to use "Tab Size" = 4, "Indent Size" = 4, and "Insert Spaces"
+ 4. Unit tests matter, so make sure you cover your changes with tests, and run them all to ensure nothing is broken.
+
+The project uses ```rake``` for the continuous integration builds, so if you have it, use it to verify your changes. 
 
 ## Usage
 

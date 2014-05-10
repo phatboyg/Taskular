@@ -57,7 +57,7 @@ namespace Taskular.Tests
 
                 Task<Payload> task = ComposerFactory.Compose(new Payload {Name = "Chris"}, composer =>
                 {
-                    composer.ExecuteAsync(async (x,token) =>
+                    composer.ExecuteAsync((x,token) =>
                     {
                         x.Name = "Joe";
                         asyncThreadId = Thread.CurrentThread.ManagedThreadId;
@@ -87,6 +87,7 @@ namespace Taskular.Tests
 
             async Task<int> SomeAsyncMethod(string value)
             {
+                await ComposerFactory.Compose(composer => { });
                 return 27;
             }
 
