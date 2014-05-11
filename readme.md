@@ -50,9 +50,9 @@ In the above example, a single task is created which begins executing immediatel
 
 Each _Execute_ method delegate will be executed sequentially. If the first _Execute_ method faults, the second method will not be executed as the chain faulted. 
 
-### Task<T>
+### ```Task<T>```
 
-In addition to support the base _Task_, Taskular can also support the composition of _Task<T>_ chains.
+In addition to support the base ```Task```, Taskular can also support the composition of ```Task<T>``` chains.
 
     Payload payload = new Payload { Name = "World"};
 
