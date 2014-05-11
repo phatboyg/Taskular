@@ -13,8 +13,8 @@ namespace Taskular.Tests
     using System;
     using System.Diagnostics;
     using System.Threading;
+    using System.Threading.Tasks;
     using NUnit.Framework;
-    using Policies;
 
 
     [TestFixture]
@@ -27,7 +27,7 @@ namespace Taskular.Tests
 
             IRetryPolicy retryPolicy = Retry.Intervals(10, 50, 500, 1000);
 
-            var task = ComposerFactory.Compose(composer => composer.Retry(retryPolicy, x => x.Execute(tracker.FaultingMethod)));
+            Task task = ComposerFactory.Compose(composer => composer.Retry(retryPolicy, x => x.Execute(tracker.FaultingMethod)));
 
             Stopwatch timer = Stopwatch.StartNew();
 
@@ -41,31 +41,31 @@ namespace Taskular.Tests
         }
 
         [Test]
-        public void Should_call_the_method_three_times()
-        {
-            var tracker = new Tracker(3);
-
-            IRetryPolicy retryPolicy = Retry.Immediate(5);
-
-            var task = ComposerFactory.Compose(composer => composer.Retry(retryPolicy, x => x.Execute(tracker.FaultingMethod)));
-
-            task.Wait();
-
-            Assert.AreEqual(4, tracker.CallCount);
-        }
-
-        [Test]
         public void Should_call_the_method_only_once()
         {
             var tracker = new Tracker(3);
 
             IRetryPolicy retryPolicy = Retry.Filter<InvalidOperationException>(x => false).Immediate(5);
 
-            var task = ComposerFactory.Compose(composer => composer.Retry(retryPolicy, x => x.Execute(tracker.FaultingMethod)));
+            Task task = ComposerFactory.Compose(composer => composer.Retry(retryPolicy, x => x.Execute(tracker.FaultingMethod)));
 
             Assert.Throws<InvalidOperationException>(async () => await task);
 
             Assert.AreEqual(1, tracker.CallCount);
+        }
+
+        [Test]
+        public void Should_call_the_method_three_times()
+        {
+            var tracker = new Tracker(3);
+
+            IRetryPolicy retryPolicy = Retry.Immediate(5);
+
+            Task task = ComposerFactory.Compose(composer => composer.Retry(retryPolicy, x => x.Execute(tracker.FaultingMethod)));
+
+            task.Wait();
+
+            Assert.AreEqual(4, tracker.CallCount);
         }
 
         [Test]
@@ -75,7 +75,7 @@ namespace Taskular.Tests
 
             IRetryPolicy retryPolicy = Retry.Selected<InvalidOperationException>().Immediate(5);
 
-            var task = ComposerFactory.Compose(composer => composer.Retry(retryPolicy, x => x.Execute(tracker.FaultingMethod)));
+            Task task = ComposerFactory.Compose(composer => composer.Retry(retryPolicy, x => x.Execute(tracker.FaultingMethod)));
 
             await task;
 
@@ -89,7 +89,7 @@ namespace Taskular.Tests
 
             IRetryPolicy retryPolicy = Retry.Except<InvalidOperationException>().Immediate(5);
 
-            var task = ComposerFactory.Compose(composer => composer.Retry(retryPolicy, x => x.Execute(tracker.FaultingMethod)));
+            Task task = ComposerFactory.Compose(composer => composer.Retry(retryPolicy, x => x.Execute(tracker.FaultingMethod)));
 
             Assert.Throws<InvalidOperationException>(async () => await task);
 

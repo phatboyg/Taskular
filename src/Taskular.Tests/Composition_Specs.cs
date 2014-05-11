@@ -13,8 +13,8 @@ namespace Taskular.Tests
     namespace Composition_Specs
     {
         using System;
+        using System.Threading.Tasks;
         using NUnit.Framework;
-        using TaskComposers;
 
 
         [TestFixture]
@@ -26,12 +26,11 @@ namespace Taskular.Tests
                 SideCarrier<B> factorySideCarrier = new FactorySideCarrier<B>();
                 var carrier = new AircraftCarrier();
 
-                var payload = new PayloadImpl<A>(new A());
-                Composer<Payload<A>> composer = new TaskComposer<Payload<A>>(payload);
+                Payload<A> payload = new PayloadImpl<A>(new A());
 
-                factorySideCarrier.Compose(composer, carrier);
+                Task<Payload<A>> task = ComposerFactory.Compose(payload, composer => { factorySideCarrier.Compose(composer, carrier); });
 
-                await composer.Task;
+                await task;
             }
 
 
@@ -122,8 +121,9 @@ namespace Taskular.Tests
                 return PayloadProxy.Create(payload, payload.Data, right);
             }
 
-            public static Composer<Payload<T>> ComposeCarrier<T, TPayload>(this Composer<Payload<T>> composer, Carrier<Tuple<T,TPayload>> next,
-                Func<Payload<T>, Payload<Tuple<T,TPayload>>> payload)
+            public static Composer<Payload<T>> ComposeCarrier<T, TPayload>(this Composer<Payload<T>> composer,
+                Carrier<Tuple<T, TPayload>> next,
+                Func<Payload<T>, Payload<Tuple<T, TPayload>>> payload)
             {
                 return composer.ComposeTask(payload, next.Compose);
             }

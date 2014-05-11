@@ -13,8 +13,8 @@ namespace Taskular.Tests
     namespace CompensateT_Specs
     {
         using System;
+        using System.Threading.Tasks;
         using NUnit.Framework;
-        using TaskComposers;
 
 
         class Payload
@@ -29,22 +29,24 @@ namespace Taskular.Tests
             [Test]
             public void Should_throw_the_same_exception_if_unhandled()
             {
-                Composer<Payload> composer = new TaskComposer<Payload>(new Payload {Name = "Chris"});
-
-                composer.Execute(x =>
-                {
-                    x.Name = "Joe";
-                    throw new InvalidOperationException("This is expected");
-                });
-
                 bool compensated = false;
-                composer.Compensate(compensation =>
+                var p = new Payload {Name = "Chris"};
+                Task<Payload> task = ComposerFactory.Compose(p, composer =>
                 {
-                    compensated = true;
-                    return compensation.Throw();
+                    composer.Execute(x =>
+                    {
+                        x.Name = "Joe";
+                        throw new InvalidOperationException("This is expected");
+                    });
+
+                    composer.Compensate(compensation =>
+                    {
+                        compensated = true;
+                        return compensation.Throw();
+                    });
                 });
 
-                Assert.Throws<InvalidOperationException>(async () => { Payload payload = await composer.Task; });
+                Assert.Throws<InvalidOperationException>(async () => { Payload payload = await task; });
 
                 Assert.IsTrue(compensated);
             }
@@ -52,22 +54,24 @@ namespace Taskular.Tests
             [Test]
             public void Should_throw_the_specified_exception_if_unhandled()
             {
-                Composer<Payload> composer = new TaskComposer<Payload>(new Payload {Name = "Chris"});
-
-                composer.Execute(x =>
-                {
-                    x.Name = "Joe";
-                    throw new InvalidOperationException("This is expected");
-                });
-
                 bool compensated = false;
-                composer.Compensate(compensation =>
+                var p = new Payload {Name = "Chris"};
+                Task<Payload> task = ComposerFactory.Compose(p, composer =>
                 {
-                    compensated = true;
-                    return compensation.Throw(new NotImplementedException("This is also expected"));
+                    composer.Execute(x =>
+                    {
+                        x.Name = "Joe";
+                        throw new InvalidOperationException("This is expected");
+                    });
+
+                    composer.Compensate(compensation =>
+                    {
+                        compensated = true;
+                        return compensation.Throw(new NotImplementedException("This is also expected"));
+                    });
                 });
 
-                Assert.Throws<NotImplementedException>(async () => { Payload payload = await composer.Task; });
+                Assert.Throws<NotImplementedException>(async () => { Payload payload = await task; });
 
                 Assert.IsTrue(compensated);
             }
@@ -75,23 +79,23 @@ namespace Taskular.Tests
             [Test]
             public async void Should_use_async_processing()
             {
-                var originalPayload = new Payload {Name = "Chris"};
-
-                Composer<Payload> composer = new TaskComposer<Payload>(originalPayload);
-
-                composer.Execute(x =>
+                var p = new Payload {Name = "Chris"};
+                Task<Payload> task = ComposerFactory.Compose(p, composer =>
                 {
-                    x.Name = "Joe";
-                    throw new InvalidOperationException();
+                    composer.Execute(x =>
+                    {
+                        x.Name = "Joe";
+                        throw new InvalidOperationException();
+                    });
+
+                    composer.Compensate(x =>
+                    {
+                        x.Payload.Name = "Mark";
+                        return x.Handled();
+                    });
                 });
 
-                composer.Compensate(x =>
-                {
-                    x.Payload.Name = "Mark";
-                    return x.Handled();
-                });
-
-                Payload payload = await composer.Task;
+                Payload payload = await task;
 
                 Assert.AreEqual("Mark", payload.Name);
             }

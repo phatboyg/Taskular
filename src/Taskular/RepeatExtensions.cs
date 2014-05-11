@@ -101,7 +101,8 @@ namespace Taskular
         /// <param name="callback">The task composition callback</param>
         /// <param name="repeatCancellationToken"></param>
         /// <returns>The original task composer</returns>
-        public static Composer Repeat(this Composer composer, int millisecondsInitialDelay, int millisecondsInterval, Action<Composer> callback,
+        public static Composer Repeat(this Composer composer, int millisecondsInitialDelay, int millisecondsInterval,
+            Action<Composer> callback,
             CancellationToken repeatCancellationToken)
         {
             if (millisecondsInterval < 0)

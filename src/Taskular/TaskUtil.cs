@@ -145,19 +145,9 @@ namespace Taskular
                 return source.TrySetException(task.Exception.InnerExceptions);
 
             if (task.Status == TaskStatus.RanToCompletion)
-            {
                 return source.TrySetResult(task.Result);
-            }
 
             return false;
-        }
-
-        internal static void MarkObserved(this Task task)
-        {
-            if (!task.IsCompleted)
-                return;
-
-            Exception unused = task.Exception;
         }
 
         /// <summary>
@@ -201,16 +191,16 @@ namespace Taskular
         {
             var source = new TaskCompletionSource<Task>();
             task.ContinueWith(innerTask =>
-                {
-                    if (innerTask.IsFaulted)
-                        source.TrySetException(innerTask.Exception.InnerExceptions);
-                    else if (innerTask.IsCanceled || cancellationToken.IsCancellationRequested)
-                        source.TrySetCanceled();
-                    else
-                        source.TrySetResult(continuationTask());
-                }, runSynchronously
-                    ? TaskContinuationOptions.ExecuteSynchronously
-                    : TaskContinuationOptions.None);
+            {
+                if (innerTask.IsFaulted)
+                    source.TrySetException(innerTask.Exception.InnerExceptions);
+                else if (innerTask.IsCanceled || cancellationToken.IsCancellationRequested)
+                    source.TrySetCanceled();
+                else
+                    source.TrySetResult(continuationTask());
+            }, runSynchronously
+                ? TaskContinuationOptions.ExecuteSynchronously
+                : TaskContinuationOptions.None);
 
             return source.Task.FastUnwrap();
         }

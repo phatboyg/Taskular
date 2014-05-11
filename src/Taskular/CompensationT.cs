@@ -14,9 +14,16 @@ namespace Taskular
     using System.Threading;
     using System.Threading.Tasks;
 
-
+    /// <summary>
+    /// The compensation context provided when a Compensate method is used an the previous Task
+    /// is faulted.
+    /// </summary>
+    /// <typeparam name="T">The payload type</typeparam>
     public interface Compensation<T>
     {
+        /// <summary>
+        /// The CancellationToken for the Task chain.
+        /// </summary>
         CancellationToken CancellationToken { get; }
 
         /// <summary>

@@ -66,14 +66,13 @@
     <Compile Include="Policies\RetrySelectedRetryExceptionFilter.cs" />
     <Compile Include="RepeatExtensions.cs" />
     <Compile Include="RetryExtensions.cs" />
-    <Compile Include="Exceptions\TaskComposerException.cs" />
-    <Compile Include="Exceptions\TaskularException.cs" />
     <Compile Include="Retry.cs" />
     <Compile Include="TaskComposers\TaskComposer.cs" />
     <Compile Include="TaskComposers\TaskComposerT.cs" />
     <Compile Include="TaskUtil.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Exceptions\" />
     <Folder Include="Intervals\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

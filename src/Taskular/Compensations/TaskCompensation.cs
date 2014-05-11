@@ -18,10 +18,10 @@ namespace Taskular.Compensations
     public class TaskCompensation<T> :
         Compensation<T>
     {
+        readonly CancellationToken _cancellationToken;
         readonly Exception _exception;
         readonly Task<T> _faultedTask;
         readonly T _payload;
-        readonly CancellationToken _cancellationToken;
 
         public TaskCompensation(Task<T> faultedTask, T payload, CancellationToken cancellationToken)
         {

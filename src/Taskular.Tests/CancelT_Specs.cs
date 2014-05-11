@@ -15,7 +15,6 @@ namespace Taskular.Tests
         using System.Threading;
         using System.Threading.Tasks;
         using NUnit.Framework;
-        using TaskComposers;
 
 
         class Payload
@@ -30,27 +29,24 @@ namespace Taskular.Tests
             [Test]
             public void Should_throw_task_canceled_exception()
             {
-                var cts = new CancellationTokenSource();
+                var cancel = new CancellationTokenSource();
 
-                Composer<Payload> composer = new TaskComposer<Payload>(new Payload {Name = "Chris"}, cts.Token);
+                var payload = new Payload {Name = "Chris"};
 
-                composer.Execute(x =>
+                Task<Payload> task = ComposerFactory.Compose(payload, composer =>
+                {
+                    composer.Execute(x =>
                     {
                         x.Name = "Joe";
-                        cts.Cancel();
+                        cancel.Cancel();
                     });
 
-                composer.Execute(x =>
-                    {
-                        x.Name = "Mark";
-                    });
+                    composer.Execute(x => { x.Name = "Mark"; });
+                }, cancel.Token);
 
-                Assert.Throws<TaskCanceledException>(async () =>
-                    {
-                        var payload = await composer.Task;
-                    });
+                Assert.Throws<TaskCanceledException>(async () => { Payload p = await task; });
 
-                Assert.AreEqual("Joe", composer.Payload.Name);
+                Assert.AreEqual("Joe", payload.Name);
             }
         }
     }
